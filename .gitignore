@@ -1,2 +1,5 @@
 #vscode files
 .vscode/
+
+#build dir
+build/
