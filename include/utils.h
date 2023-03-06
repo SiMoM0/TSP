@@ -6,34 +6,91 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include "tsp.h"
 
-//hard-wired parameters
-#define XSMALL		  		  1e-5 		// 1e-4*	// tolerance used to decide ingerality of 0-1 var.s
-#define EPSILON		  		  1e-9		// 1e-9		// very small numerical tolerance
+/**
+ * Calculate the maximum between two integers
+ * 
+ * @param i1 first integer value
+ * @param i2 second integer value
+ * @return the maximum integer
+*/
+int imax(int i1, int i2);
 
-typedef struct {
-    //input data
-    int nnodes;
-    double *xcoord;
-    double *ycoord;
+/**
+ * Calculate the minimum between two integers
+ * 
+ * @param i1 first integer value
+ * @param i2 second integer value
+ * @return the minimum integer
+*/
+int imin(int i1, int i2);
 
-    //parameters
-    int randomseed;
-    double timelimit;
-    char input_file[1000];
-    int verbose;
-} instance;
+/**
+ * Calculate the maximum between two doubles
+ * 
+ * @param i1 first double value
+ * @param i2 second double value
+ * @return the maximum double
+*/
+double dmax(double d1, double d2);
 
-//inline functions
-inline int imax(int i1, int i2) { return ( i1 > i2 ) ? i1 : i2; } 
-inline double dmin(double d1, double d2) { return ( d1 < d2 ) ? d1 : d2; } 
-inline double dmax(double d1, double d2) { return ( d1 > d2 ) ? d1 : d2; } 
+/**
+ * Calculate the minimum between two doubles
+ * 
+ * @param i1 first double value
+ * @param i2 second double value
+ * @return the minimum double
+*/
+double dmin(double d1, double d2);
 
+/**
+ * Print error message
+ * 
+ * @param err string of the error
+*/
 void print_error(const char *err);
+
+/**
+ * Print debug message
+ * 
+ * @param err string of the debug message
+*/
 void debug(const char *err);   
 
+/**
+ * Read inputs and create tsp instance
+ * 
+ * @param inst instance to be defined
+*/
 void read_input(instance *inst);
-void parse_command_line(int argc, char** argv, instance *inst);
+
+/**
+ * Parse command line argument
+ * 
+ * @param argc number of parameters
+ * @param argv string containing the command line arguments
+ * @param inst model instance
+*/
+void parse_command_line(int argc, const char** argv, instance *inst);
+
+/**
+ * Free memory regarding the tsp instance
+ * 
+ * @param inst tsp model instance
+*/
 void free_instance(instance* inst);
 
+/**
+ * Print info about the input tsp instance
+ * 
+ * @param inst input tsp instance
+*/
+void print_instance(instance* inst);
+
+/**
+ * Plot graph using gnuplot
+ * 
+ * @param inst input model instance
+*/
 void plot(instance* inst);

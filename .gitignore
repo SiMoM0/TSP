@@ -3,3 +3,6 @@
 
 #build dir
 build/
+
+#dat files
+*.dat

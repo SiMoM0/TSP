@@ -1,5 +1,21 @@
 #include "utils.h"
 
+int imax(int i1, int i2) {
+	return (i1 > i2) ? i1 : i2;
+}
+
+int imin(int i1, int i2) {
+	return (i1 < i2) ? i1 : i2;
+}
+
+double dmax(double d1, double d2) {
+	return (d1 > d2) ? d1 : d2;
+}
+
+double dmin(double d1, double d2) {
+	return (d1 < d2) ? d1 : d2;
+}
+
 void print_error(const char *err) {
     printf("\n\n ERROR: %s \n\n", err);
     fflush(NULL);
@@ -31,20 +47,23 @@ void read_input(instance *inst) {
 		if (verbose >= 2000 ) { printf("%s",line); fflush(NULL); }
 		if ( strlen(line) <= 1 ) continue; // skip empty lines
 	    par_name = strtok(line, " :");
-		if (verbose >= 3000 ) { printf("parameter \"%s\" ",par_name); fflush(NULL); }
+		if(verbose >= 3000) {
+			printf("parameter \"%s\" ",par_name);
+			fflush(NULL);
+		}
 
-		if ( strncmp(par_name, "NAME", 4) == 0 ) {
+		if(strncmp(par_name, "NAME", 4) == 0) {
 			active_section = 0;
 			continue;
 		}
 
-		if ( strncmp(par_name, "COMMENT", 7) == 0 ) {
+		if(strncmp(par_name, "COMMENT", 7) == 0) {
 			active_section = 0;   
 			token1 = strtok(NULL, "");
 			continue;
 		}   
 		
-		if ( strncmp(par_name, "TYPE", 4) == 0 ) {
+		if(strncmp(par_name, "TYPE", 4) == 0) {
 			token1 = strtok(NULL, " :");  
 			if ( strncmp(token1, "TSP",3) != 0 ) print_error(" format error:  only TYPE == TSP implemented so far!!!!!!"); 
 			active_section = 0;
@@ -52,7 +71,7 @@ void read_input(instance *inst) {
 		}
 		
 
-		if ( strncmp(par_name, "DIMENSION", 9) == 0 ) {
+		if(strncmp(par_name, "DIMENSION", 9) == 0) {
 			if ( inst->nnodes >= 0 ) print_error(" repeated DIMENSION section in input file");
 			token1 = strtok(NULL, " :");
 			inst->nnodes = atoi(token1);
@@ -63,25 +82,25 @@ void read_input(instance *inst) {
 			continue;
 		}
 
-		if ( strncmp(par_name, "EDGE_WEIGHT_TYPE", 16) == 0 ) {
+		if(strncmp(par_name, "EDGE_WEIGHT_TYPE", 16) == 0) {
 			token1 = strtok(NULL, " :");
 			if ( strncmp(token1, "ATT", 3) != 0 ) print_error(" format error:  only EDGE_WEIGHT_TYPE == ATT implemented so far!!!!!!"); 
 			active_section = 0;
 			continue;
 		}            
 		
-		if ( strncmp(par_name, "NODE_COORD_SECTION", 18) == 0 ) {
+		if(strncmp(par_name, "NODE_COORD_SECTION", 18) == 0) {
 			if ( inst->nnodes <= 0 ) print_error(" ... DIMENSION section should appear before NODE_COORD_SECTION section");
 			active_section = 1;   
 			continue;
 		}
 		
-		if ( strncmp(par_name, "EOF", 3) == 0 ) {
+		if(strncmp(par_name, "EOF", 3) == 0) {
 			active_section = 0;
 			break;
 		}
 
-        if ( active_section == 1 ) {
+        if(active_section == 1) {
             // within NODE_COORD_SECTION
 			int i = atoi(par_name) - 1; 
 			if ( i < 0 || i >= inst->nnodes ) print_error(" ... unknown node in NODE_COORD_SECTION section");     
@@ -100,32 +119,31 @@ void read_input(instance *inst) {
 	fclose(fin);
 }
 
-void parse_command_line(int argc, char** argv, instance *inst) {
-    if(inst->verbose >= 100) {
-        printf(" running %s with %d parameters \n", argv[0], argc-1); 
-    }
-
-	// default
+void parse_command_line(int argc, const char** argv, instance *inst) {
+	// default instance attributes
 	strcpy(inst->input_file, "NULL");
-	inst->randomseed = 0;
+	inst->randomseed = 10;
+	inst->timelimit = INFINITY;
+	inst->verbose = 0;
 
+	// flag for help command
     int help = 0;
-    if(argc < 1)
-        help = 1;
 
-	for ( int i = 1; i < argc; i++ ) { 
-		if(strcmp(argv[i],"-file") == 0 ) { strcpy(inst->input_file,argv[++i]); continue;} 			// input file
-		if(strcmp(argv[i],"-input") == 0 ) { strcpy(inst->input_file,argv[++i]); continue;} 			// input file
-		if(strcmp(argv[i],"-f") == 0 ) { strcpy(inst->input_file,argv[++i]); continue;} 				// input file
-		if(strcmp(argv[i],"-time_limit") == 0 ) { inst->timelimit = atof(argv[++i]); continue;}		// total time limit
-		if(strcmp(argv[i],"-seed") == 0 ) { inst->randomseed = abs(atoi(argv[++i])); continue;} 		// max n. of nodes
-        if(strcmp(argv[i], "-verbose") == 0) {inst->verbose = atoi(argv[++i]); continue;}
-        if(strcmp(argv[i], "-v") == 0) {inst->verbose = atoi(argv[++i]); continue;}
-		if(strcmp(argv[i],"-help") == 0 ) { help = 1; continue;} 									// help
-		if(strcmp(argv[i],"--help") == 0 ) { help = 1; continue;} 									// help
+	for(int i=1; i<argc; i++) {
+		//TODO use duplicates or not (?)
+		if(strcmp(argv[i],"-file") == 0) { strcpy(inst->input_file,argv[++i]); continue;} 			// input file
+		if(strcmp(argv[i],"-input") == 0) { strcpy(inst->input_file,argv[++i]); continue;} 			// input file
+		if(strcmp(argv[i],"-f") == 0) { strcpy(inst->input_file,argv[++i]); continue;} 				// input file
+		if(strcmp(argv[i],"-time_limit") == 0) { inst->timelimit = atof(argv[++i]); continue;}		// total time limit
+		if(strcmp(argv[i],"-seed") == 0) { inst->randomseed = abs(atoi(argv[++i])); continue;} 		// random seed
+        if(strcmp(argv[i], "-verbose") == 0) {inst->verbose = atoi(argv[++i]); continue;}			// verbose parameter
+        if(strcmp(argv[i], "-v") == 0) {inst->verbose = atoi(argv[++i]); continue;}					// verbose parameter
+		if(strcmp(argv[i],"-help") == 0) { help = 1; continue;} 									// help
+		if(strcmp(argv[i],"--help") == 0) { help = 1; continue;} 									// help
 		help = 1;
     }      
 
+	//TODO use help to display possible commands and verbose for print_instance function below
 	if(help || (inst->verbose >= 10)) {
         // print current parameters
 		printf("\n\navailable parameters (vers. 16-may-2015) --------------------------------------------------\n");
@@ -137,14 +155,47 @@ void parse_command_line(int argc, char** argv, instance *inst) {
 		printf("----------------------------------------------------------------------------------------------\n\n");
 	}        
 	
-	if ( help ) exit(1);
-}
-
-void plot(instance* inst) {
-
+	if(help)
+		exit(1);
 }
 
 void free_instance(instance *inst) {
 	free(inst->xcoord);
 	free(inst->ycoord);
+}
+
+void print_instance(instance* inst) {
+	printf("INSTANCE INFO\n");
+	printf("	input file: %s\n", inst->input_file);
+	printf("	number of nodes: %d\n", inst->nnodes);
+	printf("	time limit: %lf\n", inst->timelimit);
+	printf("	random seed: %d\n", inst->randomseed);
+	printf("	verbose: %d\n", inst->verbose);
+}
+
+void plot(instance* inst) {
+    //define output path for dat file
+    char output_path[100];
+    strcpy(output_path, inst->input_file);
+	output_path[strlen(output_path)-3] = 0;
+    strcat(output_path, "dat");
+
+    printf("Output path: %s, len = %ld\n", output_path, strlen(output_path));
+
+    // Write data to output dat file
+    FILE* fp = fopen(output_path, "w");
+    for(int i = 0; i < inst->nnodes; ++i) {
+        fprintf(fp, "%f %f\n", inst->xcoord[i], inst->ycoord[i]);
+    }
+    fclose(fp);
+
+    //set command to execute plot
+    char command[200];
+    strcpy(command, "gnuplot -persist -e \"plot '");
+    strcat(command, output_path);
+    strcat(command, "' with linespoints ls 1 lc rgb '#ff0000' lt 1 pt 7 pi -1 ps 2\"");
+
+	printf("Gnuplot command: %s\n", command);
+
+    system(command);
 }
