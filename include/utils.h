@@ -88,6 +88,8 @@ void free_instance(instance* inst);
 */
 void print_instance(instance* inst);
 
+void print_help();
+
 /**
  * Plot graph using gnuplot
  * 

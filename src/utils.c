@@ -125,6 +125,7 @@ void parse_command_line(int argc, const char** argv, instance *inst) {
 	inst->randomseed = 10;
 	inst->timelimit = INFINITY;
 	inst->verbose = 0;
+	inst->nnodes = 0;
 
 	// flag for help command
     int help = 0;
@@ -143,20 +144,18 @@ void parse_command_line(int argc, const char** argv, instance *inst) {
 		help = 1;
     }      
 
-	//TODO use help to display possible commands and verbose for print_instance function below
-	if(help || (inst->verbose >= 10)) {
-        // print current parameters
-		printf("\n\navailable parameters (vers. 16-may-2015) --------------------------------------------------\n");
-		printf("-file %s\n", inst->input_file); 
-		printf("-time_limit %lf\n", inst->timelimit);
-		printf("-seed %d\n", inst->randomseed);
-        printf("-verbose %d\n", inst->verbose);
-		printf("\nenter -help or --help for help\n");
-		printf("----------------------------------------------------------------------------------------------\n\n");
+	//print all the main parameters of instance if verbose>=10 
+	if((inst->verbose >= 10)) {
+	    // print current parameters
+		print_instance(inst);
+		printf("\nEnter -help or --help for help\n");
 	}        
 	
-	if(help)
-		exit(1);
+	//show all the parameters to modify
+	if(help){
+		print_help();
+        exit(0);
+	}
 }
 
 void free_instance(instance *inst) {
@@ -171,6 +170,14 @@ void print_instance(instance* inst) {
 	printf("	time limit: %lf\n", inst->timelimit);
 	printf("	random seed: %d\n", inst->randomseed);
 	printf("	verbose: %d\n", inst->verbose);
+}
+
+void print_help(){
+	printf("AVAILABLE PARAMETERS TO MODIFY:\n");
+	printf("-file <file's path>       Path of the file to solve the problem\n");
+    printf("-time_limit <time>        The time limit in seconds\n");
+	printf("-seed <seed>              The seed for random number generation\n");
+	printf("-verbose <level>          It displays detailed processing information on the screen\n");
 }
 
 void plot(instance* inst) {
@@ -193,6 +200,13 @@ void plot(instance* inst) {
     char command[200];
     strcpy(command, "gnuplot -persist -e \"plot '");
     strcat(command, output_path);
+	/*	ls -> linecolor
+		lc -> linecolor
+		lt -> linetype
+		ps -> pointsize
+		pt -> pointtype
+		#ff0000 -> red in HEX
+	*/
     strcat(command, "' with linespoints ls 1 lc rgb '#ff0000' lt 1 pt 7 pi -1 ps 2\"");
 
 	printf("Gnuplot command: %s\n", command);
