@@ -72,7 +72,7 @@ void read_input(instance *inst);
  * @param argv string containing the command line arguments
  * @param inst model instance
 */
-void parse_command_line(int argc, const char** argv, instance *inst);
+void parse_command_line(int argc, char** argv, instance *inst);
 
 /**
  * Free memory regarding the tsp instance
@@ -88,6 +88,9 @@ void free_instance(instance* inst);
 */
 void print_instance(instance* inst);
 
+/**
+ * Print info about command line arguments
+*/
 void print_help();
 
 /**

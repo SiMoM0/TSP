@@ -75,10 +75,9 @@ void read_input(instance *inst) {
 			if ( inst->nnodes >= 0 ) print_error(" repeated DIMENSION section in input file");
 			token1 = strtok(NULL, " :");
 			inst->nnodes = atoi(token1);
-			if ( do_print ) printf(" ... nnodes %d\n", inst->nnodes);	 
-			inst->xcoord = (double *) calloc(inst->nnodes, sizeof(double)); 	 
-			inst->ycoord = (double *) calloc(inst->nnodes, sizeof(double));    
-			active_section = 0;  
+			if ( do_print ) printf(" ... nnodes %d\n", inst->nnodes);
+			inst->points = (point *) calloc(inst->nnodes, sizeof(point));
+			active_section = 0;
 			continue;
 		}
 
@@ -106,9 +105,9 @@ void read_input(instance *inst) {
 			if ( i < 0 || i >= inst->nnodes ) print_error(" ... unknown node in NODE_COORD_SECTION section");     
 			token1 = strtok(NULL, " ");
 			token2 = strtok(NULL, " ");
-			inst->xcoord[i] = atof(token1);
-			inst->ycoord[i] = atof(token2);
-			if ( do_print ) printf(" ... node %4d at coordinates ( %15.7lf , %15.7lf )\n", i+1, inst->xcoord[i], inst->ycoord[i]); 
+			inst->points[i].x = atof(token1);
+			inst->points[i].y = atof(token2);
+			if ( do_print ) printf(" ... node %4d at coordinates ( %15.7lf , %15.7lf )\n", i+1, inst->points[i].x, inst->points[i].y); 
 			continue;
 		}
 		
@@ -119,7 +118,7 @@ void read_input(instance *inst) {
 	fclose(fin);
 }
 
-void parse_command_line(int argc, const char** argv, instance *inst) {
+void parse_command_line(int argc, char** argv, instance *inst) {
 	// default instance attributes
 	strcpy(inst->input_file, "NULL");
 	inst->randomseed = 10;
@@ -159,8 +158,7 @@ void parse_command_line(int argc, const char** argv, instance *inst) {
 }
 
 void free_instance(instance *inst) {
-	free(inst->xcoord);
-	free(inst->ycoord);
+	free(inst->points);
 }
 
 void print_instance(instance* inst) {
@@ -181,6 +179,7 @@ void print_help(){
 }
 
 void plot(instance* inst) {
+	//TODO: change function to generate and use a command.txt file for plotting
     //define output path for dat file
     char output_path[100];
     strcpy(output_path, inst->input_file);
@@ -192,7 +191,7 @@ void plot(instance* inst) {
     // Write data to output dat file
     FILE* fp = fopen(output_path, "w");
     for(int i = 0; i < inst->nnodes; ++i) {
-        fprintf(fp, "%f %f\n", inst->xcoord[i], inst->ycoord[i]);
+        fprintf(fp, "%f %f\n", inst->points[i].x, inst->points[i].y);
     }
     fclose(fp);
 
