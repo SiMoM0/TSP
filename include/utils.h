@@ -56,14 +56,24 @@ void print_error(const char *err);
  * 
  * @param err string of the debug message
 */
-void debug(const char *err);   
+void debug(const char *err);
+
+/**
+ * Create a path for a file with build directory as reference
+ * 
+ * @param output_path output path created
+ * @param dir directory name
+ * @param file file name
+ * @param ext file extension
+*/
+void create_path(char* output_path, char* dir, char* filename, char* ext);
 
 /**
  * Read inputs and create tsp instance
  * 
- * @param inst instance to be defined
+ * @param inst model instance
 */
-void read_input(instance *inst);
+void parse_model(instance *inst);
 
 /**
  * Parse command line argument
@@ -92,10 +102,3 @@ void print_instance(instance* inst);
  * Print info about command line arguments
 */
 void print_help();
-
-/**
- * Plot graph using gnuplot
- * 
- * @param inst input model instance
-*/
-void plot(instance* inst);

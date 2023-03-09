@@ -6,3 +6,6 @@ build/
 
 #dat files
 *.dat
+
+#gnuplot command file
+plot/command.txt

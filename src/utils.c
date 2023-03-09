@@ -27,9 +27,34 @@ void debug(const char *err) {
     fflush(NULL);
 }
 
-void read_input(instance *inst) {
+void create_path(char* output_path, char* dir, char* filename, char* ext) {
+	//check input parameters
+	if(dir == NULL || filename == NULL || ext == NULL)
+		print_error("Missing values for path generation");
+
+	//path to be created
+	char path[200] = "../";
+
+	//add directory name
+	strcat(path, dir);
+	strcat(path, "/");
+	
+	//add file name
+	strcat(path, filename);
+	
+	//add extension
+	strcat(path, ".");
+	strcat(path, ext);
+
+	//update output_path
+	strcpy(output_path, path);
+}
+
+void parse_model(instance *inst) {
+	//open input file in read mode
     FILE *fin = fopen(inst->input_file, "r");
-	if ( fin == NULL ) print_error(" input file not found!");
+	if(fin == NULL)
+		print_error("Input file not found!");
 	
 	inst->nnodes = -1;
     int verbose = inst->verbose;
@@ -41,12 +66,20 @@ void read_input(instance *inst) {
 	
 	int active_section = 0; // =1 NODE_COORD_SECTION, =2 DEMAND_SECTION, =3 DEPOT_SECTION 
 	
-	int do_print = (verbose >= 1000 );
+	int do_print = (verbose >= 1000);
 
 	while(fgets(line, sizeof(line), fin) != NULL) {
-		if (verbose >= 2000 ) { printf("%s",line); fflush(NULL); }
-		if ( strlen(line) <= 1 ) continue; // skip empty lines
+		if (verbose >= 2000) {
+			printf("%s",line);
+			fflush(NULL);
+		}
+
+		// skip empty lines
+		if(strlen(line) <= 1)
+			continue;
+
 	    par_name = strtok(line, " :");
+		//TODO:change verbose format
 		if(verbose >= 3000) {
 			printf("parameter \"%s\" ",par_name);
 			fflush(NULL);
@@ -54,6 +87,10 @@ void read_input(instance *inst) {
 
 		if(strncmp(par_name, "NAME", 4) == 0) {
 			active_section = 0;
+			token1 = strtok(NULL, " : ");
+			//remove \n at the end of the string
+			token1[strcspn(token1, "\n")] = 0;
+			strcpy(inst->name, token1);
 			continue;
 		}
 
@@ -65,17 +102,19 @@ void read_input(instance *inst) {
 		
 		if(strncmp(par_name, "TYPE", 4) == 0) {
 			token1 = strtok(NULL, " :");  
-			if ( strncmp(token1, "TSP",3) != 0 ) print_error(" format error:  only TYPE == TSP implemented so far!!!!!!"); 
+			if(strncmp(token1, "TSP",3) != 0)
+				print_error("Format error: only TYPE == TSP implemented so far!!!!!!"); 
 			active_section = 0;
 			continue;
 		}
 		
-
 		if(strncmp(par_name, "DIMENSION", 9) == 0) {
-			if ( inst->nnodes >= 0 ) print_error(" repeated DIMENSION section in input file");
+			if(inst->nnodes >= 0)
+				print_error("Repeated DIMENSION section in input file");
 			token1 = strtok(NULL, " :");
 			inst->nnodes = atoi(token1);
-			if ( do_print ) printf(" ... nnodes %d\n", inst->nnodes);
+			if(do_print)
+				printf(" ... nnodes %d\n", inst->nnodes);
 			inst->points = (point *) calloc(inst->nnodes, sizeof(point));
 			active_section = 0;
 			continue;
@@ -83,13 +122,15 @@ void read_input(instance *inst) {
 
 		if(strncmp(par_name, "EDGE_WEIGHT_TYPE", 16) == 0) {
 			token1 = strtok(NULL, " :");
-			if ( strncmp(token1, "ATT", 3) != 0 ) print_error(" format error:  only EDGE_WEIGHT_TYPE == ATT implemented so far!!!!!!"); 
+			if(strncmp(token1, "ATT", 3) != 0)
+				print_error("Format error:  only EDGE_WEIGHT_TYPE == ATT implemented so far!!!!!!"); 
 			active_section = 0;
 			continue;
 		}            
 		
 		if(strncmp(par_name, "NODE_COORD_SECTION", 18) == 0) {
-			if ( inst->nnodes <= 0 ) print_error(" ... DIMENSION section should appear before NODE_COORD_SECTION section");
+			if(inst->nnodes <= 0)
+				print_error("DIMENSION section should appear before NODE_COORD_SECTION section");
 			active_section = 1;   
 			continue;
 		}
@@ -102,18 +143,23 @@ void read_input(instance *inst) {
         if(active_section == 1) {
             // within NODE_COORD_SECTION
 			int i = atoi(par_name) - 1; 
-			if ( i < 0 || i >= inst->nnodes ) print_error(" ... unknown node in NODE_COORD_SECTION section");     
+			if(i < 0 || i >= inst->nnodes)
+				print_error("unknown node in NODE_COORD_SECTION section");     
 			token1 = strtok(NULL, " ");
 			token2 = strtok(NULL, " ");
 			inst->points[i].x = atof(token1);
 			inst->points[i].y = atof(token2);
-			if ( do_print ) printf(" ... node %4d at coordinates ( %15.7lf , %15.7lf )\n", i+1, inst->points[i].x, inst->points[i].y); 
+			if(do_print)
+				printf("node %4d at coordinates ( %15.7lf , %15.7lf )\n", i+1, inst->points[i].x, inst->points[i].y); 
 			continue;
 		}
 		
-		printf(" final active section %d\n", active_section);
-		print_error(" ... wrong format for the current simplified parser!!!!!!!!!");  
+		printf("Final active section %d\n", active_section);
+		print_error("Wrong format for the current simplified parser!!!!!!!!!");  
 	}                
+
+	if(verbose >= 10)
+		print_instance(inst);
 
 	fclose(fin);
 }
@@ -131,26 +177,24 @@ void parse_command_line(int argc, char** argv, instance *inst) {
 
 	for(int i=1; i<argc; i++) {
 		//TODO use duplicates or not (?)
-		if(strcmp(argv[i],"-file") == 0) { strcpy(inst->input_file,argv[++i]); continue;} 			// input file
-		if(strcmp(argv[i],"-input") == 0) { strcpy(inst->input_file,argv[++i]); continue;} 			// input file
-		if(strcmp(argv[i],"-f") == 0) { strcpy(inst->input_file,argv[++i]); continue;} 				// input file
-		if(strcmp(argv[i],"-time_limit") == 0) { inst->timelimit = atof(argv[++i]); continue;}		// total time limit
-		if(strcmp(argv[i],"-seed") == 0) { inst->randomseed = abs(atoi(argv[++i])); continue;} 		// random seed
+		if(strcmp(argv[i],"-file") == 0) {strcpy(inst->input_file,argv[++i]); continue;} 			// input file
+		if(strcmp(argv[i],"-input") == 0) {strcpy(inst->input_file,argv[++i]); continue;} 			// input file
+		if(strcmp(argv[i],"-f") == 0) {strcpy(inst->input_file,argv[++i]); continue;} 				// input file
+		if(strcmp(argv[i],"-time_limit") == 0) {inst->timelimit = atof(argv[++i]); continue;}		// total time limit
+		if(strcmp(argv[i],"-seed") == 0) {inst->randomseed = abs(atoi(argv[++i])); continue;} 		// random seed
         if(strcmp(argv[i], "-verbose") == 0) {inst->verbose = atoi(argv[++i]); continue;}			// verbose parameter
         if(strcmp(argv[i], "-v") == 0) {inst->verbose = atoi(argv[++i]); continue;}					// verbose parameter
-		if(strcmp(argv[i],"-help") == 0) { help = 1; continue;} 									// help
-		if(strcmp(argv[i],"--help") == 0) { help = 1; continue;} 									// help
+		if(strcmp(argv[i],"-help") == 0) {help = 1; continue;} 										// help
+		if(strcmp(argv[i],"--help") == 0) {help = 1; continue;} 									// help
 		help = 1;
     }      
 
-	//print all the main parameters of instance if verbose>=10 
-	if((inst->verbose >= 10)) {
-	    // print current parameters
-		print_instance(inst);
-		printf("\nEnter -help or --help for help\n");
+	//print help instruction if verbose >= 10
+	if(inst->verbose >= 10) {
+		printf("Enter -help or --help for help\n\n");
 	}        
 	
-	//show all the parameters to modify
+	//show all the available parameters
 	if(help){
 		print_help();
         exit(0);
@@ -163,11 +207,11 @@ void free_instance(instance *inst) {
 
 void print_instance(instance* inst) {
 	printf("INSTANCE INFO\n");
-	printf("	input file: %s\n", inst->input_file);
-	printf("	number of nodes: %d\n", inst->nnodes);
-	printf("	time limit: %lf\n", inst->timelimit);
-	printf("	random seed: %d\n", inst->randomseed);
-	printf("	verbose: %d\n", inst->verbose);
+	printf("input file: 		%s\n", inst->input_file);
+	printf("number of nodes: 	%d\n", inst->nnodes);
+	printf("time limit: 		%lf\n", inst->timelimit);
+	printf("random seed: 		%d\n", inst->randomseed);
+	printf("verbose: 		%d\n\n", inst->verbose);
 }
 
 void print_help(){
@@ -176,39 +220,4 @@ void print_help(){
     printf("-time_limit <time>        The time limit in seconds\n");
 	printf("-seed <seed>              The seed for random number generation\n");
 	printf("-verbose <level>          It displays detailed processing information on the screen\n");
-}
-
-void plot(instance* inst) {
-	//TODO: change function to generate and use a command.txt file for plotting
-    //define output path for dat file
-    char output_path[100];
-    strcpy(output_path, inst->input_file);
-	output_path[strlen(output_path)-3] = 0;
-    strcat(output_path, "dat");
-
-    printf("Output path: %s, len = %ld\n", output_path, strlen(output_path));
-
-    // Write data to output dat file
-    FILE* fp = fopen(output_path, "w");
-    for(int i = 0; i < inst->nnodes; ++i) {
-        fprintf(fp, "%f %f\n", inst->points[i].x, inst->points[i].y);
-    }
-    fclose(fp);
-
-    //set command to execute plot
-    char command[200];
-    strcpy(command, "gnuplot -persist -e \"plot '");
-    strcat(command, output_path);
-	/*	ls -> linecolor
-		lc -> linecolor
-		lt -> linetype
-		ps -> pointsize
-		pt -> pointtype
-		#ff0000 -> red in HEX
-	*/
-    strcat(command, "' with linespoints ls 1 lc rgb '#ff0000' lt 1 pt 7 pi -1 ps 2\"");
-
-	printf("Gnuplot command: %s\n", command);
-
-    system(command);
 }

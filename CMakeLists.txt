@@ -9,4 +9,4 @@ project (TSP)
 include_directories(include)
 
 # Add an executable
-add_executable(main src/main.c src/utils.c)
+add_executable(main src/main.c src/utils.c src/plot.c)

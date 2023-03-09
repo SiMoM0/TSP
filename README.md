@@ -18,6 +18,8 @@ TODO: add description of the project
     │   ├── ...
     │   ├── tsp.h
     │   └── utils.h
+    ├── plot                    Plot files
+    │   └── att48.png           Example plot file
     └── src                     Source files
         ├── ...
         ├── main.c

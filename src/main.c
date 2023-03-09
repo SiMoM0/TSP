@@ -1,6 +1,7 @@
 // MAIN FILE
 
 #include "utils.h"
+#include "plot.h"
 
 int main(int argc, char** argv) {
 
@@ -17,10 +18,10 @@ int main(int argc, char** argv) {
     parse_command_line(argc,argv, &inst);
 
     // read tsp instance
-    read_input(&inst);
+    parse_model(&inst);
 
     //plot tsp instance
-    plot(&inst);
+    plot_graph(&inst);
 
     free_instance(&inst);
     
