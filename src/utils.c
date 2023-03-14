@@ -123,7 +123,9 @@ void parse_model(instance *inst) {
 		if(strncmp(par_name, "EDGE_WEIGHT_TYPE", 16) == 0) {
 			token1 = strtok(NULL, " :");
 			if(strncmp(token1, "ATT", 3) != 0)
-				print_error("Format error:  only EDGE_WEIGHT_TYPE == ATT implemented so far!!!!!!"); 
+				print_error("Format error:  only EDGE_WEIGHT_TYPE == ATT implemented so far!!!!!!");
+			if(inst->nnodes >= 0)
+				inst->best_sol = (int *) calloc(inst->nnodes, sizeof(int));
 			active_section = 0;
 			continue;
 		}            
@@ -142,15 +144,15 @@ void parse_model(instance *inst) {
 
         if(active_section == 1) {
             // within NODE_COORD_SECTION
-			int i = atoi(par_name) - 1; 
+			int i = atoi(par_name) - 1;
 			if(i < 0 || i >= inst->nnodes)
-				print_error("unknown node in NODE_COORD_SECTION section");     
+				print_error("unknown node in NODE_COORD_SECTION section");
 			token1 = strtok(NULL, " ");
 			token2 = strtok(NULL, " ");
 			inst->points[i].x = atof(token1);
 			inst->points[i].y = atof(token2);
 			if(do_print)
-				printf("node %4d at coordinates ( %15.7lf , %15.7lf )\n", i+1, inst->points[i].x, inst->points[i].y); 
+				printf("node %4d at coordinates ( %15.7lf , %15.7lf )\n", i+1, inst->points[i].x, inst->points[i].y);
 			continue;
 		}
 		
@@ -171,6 +173,7 @@ void parse_command_line(int argc, char** argv, instance *inst) {
 	inst->timelimit = INFINITY;
 	inst->verbose = 0;
 	inst->nnodes = 0;
+	inst->zbest = -1;
 
 	// flag for help command
     int help = 0;
@@ -201,8 +204,43 @@ void parse_command_line(int argc, char** argv, instance *inst) {
 	}
 }
 
+double dist(int i, int j, instance* inst) {
+	double dx = inst->points[i].x - inst->points[j].x;
+	double dy = inst->points[i].y - inst->points[j].y;
+
+	return sqrt(dx*dx + dy*dy);
+}
+
+void compute_distances(instance* inst) {
+	//check if nnodes is greater than 0
+	if(inst->nnodes <= 0)
+		print_error("No nodes in the graph");
+
+	//allocate memory for the costs array
+	inst->distances = (double *) calloc(inst->nnodes*inst->nnodes, sizeof(double));
+
+	for(int i=0; i<inst->nnodes; ++i) {
+		for(int j=0; j<inst->nnodes; ++j) {
+			inst->distances[i*inst->nnodes + j] = dist(i, j, inst);
+		}
+	}
+}
+
+double get_cost(int i, int j, instance* inst) {
+	return inst->distances[i*inst->nnodes + j];
+}
+
+void update_solution(double z, int* solution, instance* inst) {
+	if(inst->zbest < 0.0 || z < inst->zbest) {
+		inst->zbest = z;
+		memcpy(inst->best_sol, solution, inst->nnodes * sizeof(int));
+	}
+}
+
 void free_instance(instance *inst) {
 	free(inst->points);
+	free(inst->distances);
+	free(inst->best_sol);
 }
 
 void print_instance(instance* inst) {

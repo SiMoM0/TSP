@@ -84,6 +84,43 @@ void parse_model(instance *inst);
 */
 void parse_command_line(int argc, char** argv, instance *inst);
 
+//TODO use only euclidean distance or also manhattan (no sqrt, probably faster)
+/**
+ * Compute the euclidean distance between two points
+ * 
+ * @param i index of first point
+ * @param j index of second point
+ * @param inst model instance
+ * @return euclidean distance value
+*/
+double dist(int i, int j, instance* inst);
+
+/**
+ * Compute the distances between all nodes
+ * 
+ * @param inst model instance
+*/
+void compute_distances(instance* inst);
+
+/**
+ * Get cost of the edge between nodes i and j
+ * 
+ * @param i index of first node
+ * @param j index of second node
+ * @param inst model instance
+ * @return cost of the relative edge
+*/
+double get_cost(int i, int j, instance* inst);
+
+/**
+ * Update model solution if the input cost is better
+ * 
+ * @param z solution cost
+ * @param solution candidate solution
+ * @param inst model instance
+*/
+void update_solution(double z, int* solution, instance* inst);
+
 /**
  * Free memory regarding the tsp instance
  * 

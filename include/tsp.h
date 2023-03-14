@@ -21,6 +21,8 @@ typedef struct instance {
     //input data
     int nnodes;
     point* points;
+    //TODO better to define an edge struct (?)
+    double* distances;
 
     //parameters
     char name[100];
@@ -28,4 +30,8 @@ typedef struct instance {
     double timelimit;
     char input_file[1000];
     int verbose;
+
+    //solution
+    double zbest;
+    int* best_sol;
 } instance;

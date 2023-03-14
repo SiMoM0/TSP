@@ -38,4 +38,4 @@ void create_command(char* output_path, instance* inst);
  * 
  * @param inst tsp model instance
 */
-void plot_graph(instance* inst);
+void plot_solution(instance* inst);

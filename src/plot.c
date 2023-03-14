@@ -10,11 +10,19 @@ void create_dat_file(char* output_path, instance* inst) {
     FILE* fp = fopen(data_path, "w");
     if(fp == NULL)
         print_error("Error during .dat file creation");
-    for(int i = 0; i<inst->nnodes; ++i) {
-        fprintf(fp, "%f %f\n", inst->points[i].x, inst->points[i].y);
-    }
-    fclose(fp);
 
+    //write start node at the beginning
+    fprintf(fp, "%f %f\n", inst->points[inst->best_sol[0]].x, inst->points[inst->best_sol[0]].y);
+    //write all the nodes twice
+    for(int i=1; i<inst->nnodes; ++i) {
+        int node = inst->best_sol[i];
+        fprintf(fp, "%f %f\n\n", inst->points[node].x, inst->points[node].y);
+        fprintf(fp, "%f %f\n", inst->points[node].x, inst->points[node].y);
+    }
+    //write start node at the end
+    fprintf(fp, "%f %f\n", inst->points[inst->best_sol[0]].x, inst->points[inst->best_sol[0]].y);
+
+    fclose(fp);
     // set data path
     strcpy(output_path, data_path);
 }
@@ -56,7 +64,7 @@ void create_command(char* output_path, instance* inst) {
     fprintf(cf, "set ylabel 'Y-axis Label'\n\n");
 
     fprintf(cf, "set style line 1 lc rgb '#ff0000' lt 1 lw 2 pt 7 pi -1 ps 1.5\n");
-    fprintf(cf, "set pointintervalbox 3\n\n");
+    fprintf(cf, "set pointintervalbox 2\n\n");
 
     fprintf(cf, "plot '%s' with linespoints ls 1", data_path);
 
@@ -65,7 +73,7 @@ void create_command(char* output_path, instance* inst) {
     strcpy(output_path, command_path);
 }
 
-void plot_graph(instance* inst) {
+void plot_solution(instance* inst) {
     char command_path[100];
     create_command(command_path, inst);
 

@@ -1,6 +1,7 @@
 // MAIN FILE
 
 #include "utils.h"
+#include "heuristics.h"
 #include "plot.h"
 
 int main(int argc, char** argv) {
@@ -11,7 +12,7 @@ int main(int argc, char** argv) {
         exit(1);
     }
 
-    // empty tsp instance
+    // tsp instance
     instance inst;
     
     // read user commands
@@ -20,8 +21,11 @@ int main(int argc, char** argv) {
     // read tsp instance
     parse_model(&inst);
 
+    //execute algorithm
+    greedy_iterative(&inst);
+
     //plot tsp instance
-    plot_graph(&inst);
+    plot_solution(&inst);
 
     free_instance(&inst);
     
