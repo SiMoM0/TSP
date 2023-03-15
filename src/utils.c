@@ -237,6 +237,23 @@ void update_solution(double z, int* solution, instance* inst) {
 	}
 }
 
+void check_solution(int* solution, int length) {
+	int* check_array = calloc(length, sizeof(int));
+	int ret_value = 1;
+
+	for(int i=0; i<length; ++i) {
+		check_array[solution[i]] = 1;
+	}
+
+	for(int i=0; i<length; ++i) {
+		if(check_array[i] != 1)
+			debug("TSP solution not valid");
+	}
+
+	free(check_array);
+	debug("TSP solution is valid");
+}
+
 void free_instance(instance *inst) {
 	free(inst->points);
 	free(inst->distances);

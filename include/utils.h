@@ -122,6 +122,15 @@ double get_cost(int i, int j, instance* inst);
 void update_solution(double z, int* solution, instance* inst);
 
 /**
+ * Check if the input solution is a valid solution for the tsp.
+ * Print a debug error if the solution is not valid.
+ * 
+ * @param solution array representing the solution
+ * @param length length of the solution array
+*/
+void check_solution(int* solution, int length);
+
+/**
  * Free memory regarding the tsp instance
  * 
  * @param inst tsp model instance

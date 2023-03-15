@@ -7,24 +7,16 @@ double greedy(instance* inst, int start_node) {
 
     //TODO track execution time
     
-    //TODO compute all distances at the beginnig (should be the best approach)
     compute_distances(inst);
 
-    //allocate memory for the solution (does not work here)
-    //inst->best_sol = (int *) calloc(inst->nnodes, sizeof(int));
-
-    //TODO use a local solution vector and then copy it into the best_sol instance attributes ?
     int* solution = (int* ) calloc(inst->nnodes, sizeof(int));
 
-    //initialize all the cell to the corresponding index
+    //initialize all the cell to -1
     for(int i=0; i<inst->nnodes; ++i)
-        solution[i] = i;
-    // set start point at the beginning
-    solution[0] = start_node;
-    solution[start_node] = 0;
+        solution[i] = -1;
 
-    //solution value
-    double value = 0;
+    //solution objective value z
+    double z = 0;
 
     // TODO use a visited array with more memory or search in the visited part of the solution array which is time consuming
     // visited array
@@ -33,59 +25,67 @@ double greedy(instance* inst, int start_node) {
 
     //current node
     int curr_node = start_node;
-    //current length of visited nodes in solution array
-    int len = 1;
+    //current length of visited nodes
+    int len = 0;
 
     //loop for the algorithm
     while(len < inst->nnodes-1) {
-        //printf("ITERATION: [%d]\n", len);
-        /*for(int i=0; i<inst->nnodes; ++i)
-            printf("%d ", inst->best_sol[i]);
+        /*printf("ITERATION: [%d]\n", len);
+        for(int i=0; i<inst->nnodes; ++i)
+            printf("%d ", solution[i]);
         printf("\n");*/
-        int index = len;
-        double min =__DBL_MAX__;
+
+        //successor node
+        int succ_node = start_node;
+        double min_cost =__DBL_MAX__;
 
         //printf("NODE [%d]\n", curr_node);
 
         //search the next node
-        for(int j=len; j<inst->nnodes; ++j) {
-            int cand_node = solution[j];
-            if(curr_node == cand_node)
+        for(int i=0; i<inst->nnodes; ++i) {
+            //check nodes not visited yet
+            if(curr_node == i || solution[i] != -1)
                 continue;
-            double cost = get_cost(curr_node, cand_node, inst);
+            double cost = get_cost(curr_node, i, inst);
             //printf("Distance from node [%d] (%f, %f) = %f\n", inst->best_sol[j], inst->points[inst->best_sol[j]].x, inst->points[inst->best_sol[j]].y, cost);
-            if(cost < min) {
-                index = j;
-                min = cost;
+            if(cost < min_cost) {
+                succ_node = i;
+                min_cost = cost;
             }
         }
 
         //printf("Nearest node: %d, index: %d\n", inst->best_sol[index], index);
 
         //swap nodes
-        int tmp = solution[len];
-        solution[len] = solution[index];
-        solution[index] = tmp;
+        //int tmp = solution[len];
+        //solution[len] = solution[index];
+        //solution[index] = tmp;
+
+        //set successor node
+        solution[curr_node] = succ_node;
 
         //update current node
-        curr_node = solution[len];
+        curr_node = succ_node;
 
         //update len
         len++;
 
         //increase solution value
-        value += min;
+        z += min_cost;
     }
 
+    //set successor of last node visited
+    solution[curr_node] = start_node;
+
     //update objective value
-    value += get_cost(start_node, solution[inst->nnodes], inst);
+    z += get_cost(start_node, curr_node, inst);
 
     //update model solution
-    update_solution(value, solution, inst);
+    update_solution(z, solution, inst);
 
-    //printf("Start node [%d] - Solution value: %f\n", start_node, value);
+    //printf("Start node [%d] - Solution value: %f\n", start_node, z);
     
-    return value;
+    return z;
 }
 
 void greedy_iterative(instance* inst) {
@@ -189,12 +189,22 @@ void extra_mileage(instance* inst) {
     }
 
     //update solution format
-    int prev = 0;
+    /*int prev = 0;
     for(int i=0; i<inst->nnodes; ++i) {
         inst->best_sol[i] = succ[prev];
         prev = succ[prev];
     }
-    inst->zbest = z;
+    inst->zbest = z;*/
+
+    //check solution
+    check_solution(succ, inst->nnodes);
+
+    for(int i=0; i<inst->nnodes; ++i) {
+        printf("%d ", succ[i]);
+    }
+    printf("\n");
+
+    update_solution(z, succ, inst);
 
     free(succ);
 

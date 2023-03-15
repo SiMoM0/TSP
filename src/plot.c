@@ -12,15 +12,15 @@ void create_dat_file(char* output_path, instance* inst) {
         print_error("Error during .dat file creation");
 
     //write start node at the beginning
-    fprintf(fp, "%f %f\n", inst->points[inst->best_sol[0]].x, inst->points[inst->best_sol[0]].y);
+    //fprintf(fp, "%f %f\n", inst->points[inst->best_sol[0]].x, inst->points[inst->best_sol[0]].y);
     //write all the nodes twice
-    for(int i=1; i<inst->nnodes; ++i) {
-        int node = inst->best_sol[i];
-        fprintf(fp, "%f %f\n\n", inst->points[node].x, inst->points[node].y);
-        fprintf(fp, "%f %f\n", inst->points[node].x, inst->points[node].y);
+    for(int i=0; i<inst->nnodes; ++i) {
+        int succ_node = inst->best_sol[i];
+        fprintf(fp, "%f %f\n", inst->points[i].x, inst->points[i].y);
+        fprintf(fp, "%f %f\n\n", inst->points[succ_node].x, inst->points[succ_node].y);
     }
     //write start node at the end
-    fprintf(fp, "%f %f\n", inst->points[inst->best_sol[0]].x, inst->points[inst->best_sol[0]].y);
+    //fprintf(fp, "%f %f\n", inst->points[inst->best_sol[0]].x, inst->points[inst->best_sol[0]].y);
 
     fclose(fp);
     // set data path
