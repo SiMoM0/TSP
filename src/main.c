@@ -22,7 +22,9 @@ int main(int argc, char** argv) {
     parse_model(&inst);
 
     //execute algorithm
-    greedy_iterative(&inst);
+    //greedy_iterative(&inst);
+
+    extra_mileage(&inst);
 
     //plot tsp instance
     plot_solution(&inst);

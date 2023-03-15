@@ -77,6 +77,9 @@ double greedy(instance* inst, int start_node) {
         value += min;
     }
 
+    //update objective value
+    value += get_cost(start_node, solution[inst->nnodes], inst);
+
     //update model solution
     update_solution(value, solution, inst);
 
@@ -122,7 +125,80 @@ void extra_mileage(instance* inst) {
         }
     }
 
-    //TODO use an edge struct, probably the best implementation
+    //using succ vector where element j in cell i means node j is successor of node i
+    int* succ = calloc(inst->nnodes, sizeof(int));
+
+    //initialize all successors to -1
+    for(int i=0; i<inst->nnodes; ++i) {
+        succ[i] = -1;
+    }
+
+    //set two nodes at maximum distance
+    succ[node1] = node2;
+    succ[node2] = node1;
+
+    //number of edges in the tour
+    int tour_len = 2;
+
+    //solution objective z
+    double z = 2 * get_cost(node1, node2, inst);
+
+    while(tour_len < inst->nnodes) {
+        //candinate node to enter the tour
+        int enter_node = 0;
+        double enter_cost = __DBL_MAX__;
+
+        //scan through all edges
+        for(int i=0; i<inst->nnodes; ++i) {
+            //check if edge exists
+            if(succ[i] == -1)
+                continue;
+
+            //current edge info
+            int nodeA = i;
+            int nodeB = succ[i];
+
+            //find new node to enter the tour
+            for(int j=0; j<inst->nnodes; ++j) {
+                //exclude already visited nodes
+                if(succ[j] != -1)
+                    continue;
+
+                //compute cost difference
+                double cost_difference = get_cost(nodeA, j, inst) + get_cost(j, nodeB, inst) - get_cost(nodeA, nodeB, inst);
+
+                //in case update edge info
+                if(cost_difference < enter_cost) {
+                    enter_node = j;
+                    node1 = nodeA;
+                    node2 = nodeB;
+                    enter_cost = cost_difference;
+                }
+            }
+        }
+
+        //update succ vector
+        succ[enter_node] = succ[node1];
+        succ[node1] = enter_node;
+
+        //update solution objective
+        z += enter_cost;
+
+        //increment tour length
+        tour_len++;
+    }
+
+    //update solution format
+    int prev = 0;
+    for(int i=0; i<inst->nnodes; ++i) {
+        inst->best_sol[i] = succ[prev];
+        prev = succ[prev];
+    }
+    inst->zbest = z;
+
+    free(succ);
+
+    printf("Extra Mileage heuristic z = %f\n", z);
 }
 
 void grasp(instance* inst, int start_node) {
