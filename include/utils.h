@@ -86,6 +86,26 @@ void parse_command_line(int argc, char** argv, instance *inst);
 
 //TODO use only euclidean distance or also manhattan (no sqrt, probably faster)
 /**
+ * Compute the pseudo euclidean distance between two points
+ * 
+ * @param i index of first point
+ * @param j index of second point
+ * @param inst model instance
+ * @return euclidean distance value
+*/
+double pseudo_euc_dist(int i, int j, instance* inst);
+
+/**
+ * Compute the manhattan distance between two points
+ * 
+ * @param i index of first point
+ * @param j index of second point
+ * @param inst model instance
+ * @return euclidean distance value
+*/
+double man2d_dist(int i, int j, instance* inst);
+
+/**
  * Compute the euclidean distance between two points
  * 
  * @param i index of first point
@@ -93,7 +113,7 @@ void parse_command_line(int argc, char** argv, instance *inst);
  * @param inst model instance
  * @return euclidean distance value
 */
-double dist(int i, int j, instance* inst);
+double euc2d_dist(int i, int j, instance* inst);
 
 /**
  * Compute the distances between all nodes

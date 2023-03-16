@@ -15,6 +15,16 @@ typedef struct point{
 } point;
 
 /**
+ * Distance types
+*/
+typedef enum {
+    EUC_2D,     //euclidean distance
+    MAN_2D,     //manhattan distance
+    ATT         //pseudo-euclidean
+} edge_weight_type;
+
+
+/**
  * TSP instance
 */
 typedef struct instance {
@@ -30,6 +40,7 @@ typedef struct instance {
     double timelimit;
     char input_file[1000];
     int verbose;
+    edge_weight_type edge_weight_type;
 
     //solution
     double zbest;

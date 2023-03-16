@@ -122,8 +122,15 @@ void parse_model(instance *inst) {
 
 		if(strncmp(par_name, "EDGE_WEIGHT_TYPE", 16) == 0) {
 			token1 = strtok(NULL, " :");
-			if(strncmp(token1, "ATT", 3) != 0)
-				print_error("Format error:  only EDGE_WEIGHT_TYPE == ATT implemented so far!!!!!!");
+			if(strncmp(token1, "EUC_2D", 6) == 0){
+				inst->edge_weight_type = EUC_2D;
+			} else if(strncmp(token1, "MAN_2D", 6) == 0) {
+            	inst->edge_weight_type = MAN_2D;
+			} else if(strncmp(token1, "ATT", 3) == 0) {
+            	inst->edge_weight_type = ATT;
+			} else {
+				print_error("Format error:  Wrong edge weight type!");
+			}
 			if(inst->nnodes >= 0)
 				inst->best_sol = (int *) calloc(inst->nnodes, sizeof(int));
 			active_section = 0;
@@ -204,7 +211,32 @@ void parse_command_line(int argc, char** argv, instance *inst) {
 	}
 }
 
-double dist(int i, int j, instance* inst) {
+//Computation of pseudo_euc_dist (Minkowski distance)
+double pseudo_euc_dist(int i, int j, instance* inst) {
+	double dist; 
+
+	double dx = inst->points[i].x - inst->points[j].x;
+	double dy = inst->points[i].y - inst->points[j].y;
+
+	double rij = sqrt((dx*dx + dy*dy)/10);
+	double tij = nint(rij);
+	if (tij<rij) {  
+		dist = tij + 1;
+    } else {
+        dist = tij;
+    }
+
+	return dist;
+}
+
+double man2d_dist(int i, int j, instance* inst) {
+	double dx = inst->points[i].x - inst->points[j].x;
+	double dy = inst->points[i].y - inst->points[j].y;
+
+	return abs(dx) - abs(dy);
+}
+
+double euc2d_dist(int i, int j, instance* inst) {
 	double dx = inst->points[i].x - inst->points[j].x;
 	double dy = inst->points[i].y - inst->points[j].y;
 
@@ -219,11 +251,35 @@ void compute_distances(instance* inst) {
 	//allocate memory for the costs array
 	inst->distances = (double *) calloc(inst->nnodes*inst->nnodes, sizeof(double));
 
-	for(int i=0; i<inst->nnodes; ++i) {
-		for(int j=0; j<inst->nnodes; ++j) {
-			inst->distances[i*inst->nnodes + j] = dist(i, j, inst);
+	if(inst->edge_weight_type == EUC_2D){
+		for(int i=0; i<inst->nnodes; ++i) {
+			for(int j=0; j<inst->nnodes; ++j) {
+				inst->distances[i*inst->nnodes + j] = euc2d_dist(i, j, inst);
+			}	
+		}
+	} else if(inst->edge_weight_type == MAN_2D){
+		for(int i=0; i<inst->nnodes; ++i) {
+			for(int j=0; j<inst->nnodes; ++j) {
+				inst->distances[i*inst->nnodes + j] = man2d_dist(i, j, inst);
+			}	
+		}
+	} else if(inst->edge_weight_type == ATT){
+		for(int i=0; i<inst->nnodes; ++i) {
+			for(int j=0; j<inst->nnodes; ++j) {
+				inst->distances[i*inst->nnodes + j] = pseudo_euc_dist(i, j, inst);
+			}	
+		}
+	} else {
+		//the default is the pseudo_euc
+		for(int i=0; i<inst->nnodes; ++i) {
+			for(int j=0; j<inst->nnodes; ++j) {
+				inst->distances[i*inst->nnodes + j] = pseudo_euc_dist(i, j, inst);
+			}	
 		}
 	}
+	
+	
+	
 }
 
 double get_cost(int i, int j, instance* inst) {
@@ -266,7 +322,15 @@ void print_instance(instance* inst) {
 	printf("number of nodes: 	%d\n", inst->nnodes);
 	printf("time limit: 		%lf\n", inst->timelimit);
 	printf("random seed: 		%d\n", inst->randomseed);
-	printf("verbose: 		%d\n\n", inst->verbose);
+	printf("verbose:		%d\n", inst->verbose);
+	if(inst->edge_weight_type == EUC_2D){
+		printf("edge weight type:	EUC_2D\n\n");
+	} else if(inst->edge_weight_type == MAN_2D){
+		printf("edge weight type:	MAN_2D\n\n");
+	}else if(inst->edge_weight_type == ATT){
+		printf("edge weight type:	ATT\n\n");
+	}
+
 }
 
 void print_help(){
