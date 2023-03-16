@@ -17,7 +17,7 @@ double dmin(double d1, double d2) {
 }
 
 double nint(double x){
-	return (x + 0.5);
+	return (long) (x + 0.5);
 }
 
 void print_error(const char *err) {
@@ -222,7 +222,7 @@ double pseudo_euc_dist(int i, int j, instance* inst) {
 	double dx = inst->points[i].x - inst->points[j].x;
 	double dy = inst->points[i].y - inst->points[j].y;
 
-	double rij = sqrt((dx*dx + dy*dy)/10);
+	double rij = sqrt((dx*dx + dy*dy) / 10.0);
 	double tij = nint(rij);
 	if (tij<rij) {  
 		dist = tij + 1;
@@ -237,7 +237,7 @@ double man2d_dist(int i, int j, instance* inst) {
 	double dx = inst->points[i].x - inst->points[j].x;
 	double dy = inst->points[i].y - inst->points[j].y;
 
-	return abs(dx) - abs(dy);
+	return abs(dx) + abs(dy);
 }
 
 double euc2d_dist(int i, int j, instance* inst) {
@@ -255,13 +255,7 @@ void compute_distances(instance* inst) {
 	//allocate memory for the costs array
 	inst->distances = (double *) calloc(inst->nnodes*inst->nnodes, sizeof(double));
 
-	if(inst->edge_weight_type == EUC_2D){
-		for(int i=0; i<inst->nnodes; ++i) {
-			for(int j=0; j<inst->nnodes; ++j) {
-				inst->distances[i*inst->nnodes + j] = euc2d_dist(i, j, inst);
-			}	
-		}
-	} else if(inst->edge_weight_type == MAN_2D){
+	if(inst->edge_weight_type == MAN_2D){
 		for(int i=0; i<inst->nnodes; ++i) {
 			for(int j=0; j<inst->nnodes; ++j) {
 				inst->distances[i*inst->nnodes + j] = man2d_dist(i, j, inst);
@@ -274,10 +268,10 @@ void compute_distances(instance* inst) {
 			}	
 		}
 	} else {
-		//the default is the pseudo_euc
+		//the default is the 2d euclidean
 		for(int i=0; i<inst->nnodes; ++i) {
 			for(int j=0; j<inst->nnodes; ++j) {
-				inst->distances[i*inst->nnodes + j] = pseudo_euc_dist(i, j, inst);
+				inst->distances[i*inst->nnodes + j] = euc2d_dist(i, j, inst);
 			}	
 		}
 	}
@@ -311,7 +305,7 @@ void check_solution(int* solution, int length) {
 	}
 
 	free(check_array);
-	debug("TSP solution is valid");
+	//debug("TSP solution is valid");
 }
 
 void free_instance(instance *inst) {

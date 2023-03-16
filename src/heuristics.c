@@ -265,7 +265,7 @@ double grasp(instance* inst, int start_node, double p) {
     //update model solution
     update_solution(z, solution, inst);
 
-    printf("Start node [%d] with p1 [%f] - Solution value: %f\n", start_node, p, z);
+    //printf("Start node [%d] with p1 [%f] - Solution value: %f\n", start_node, p, z);
     
     return z;
 }
