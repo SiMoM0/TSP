@@ -16,6 +16,10 @@ double dmin(double d1, double d2) {
 	return (d1 < d2) ? d1 : d2;
 }
 
+double nint(double x){
+	return (x + 0.5);
+}
+
 void print_error(const char *err) {
     printf("\n\n ERROR: %s \n\n", err);
     fflush(NULL);

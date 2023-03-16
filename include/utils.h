@@ -45,6 +45,15 @@ double dmax(double d1, double d2);
 double dmin(double d1, double d2);
 
 /**
+ * Calculate the nint of a double 
+ * 
+ * @param x  double value
+ * @return the value + 0.5
+*/
+double nint(double x);
+
+
+/**
  * Print error message
  * 
  * @param err string of the error
