@@ -23,9 +23,11 @@ int main(int argc, char** argv) {
 
     //execute algorithm
     //greedy(&inst, 0);
-    greedy_iterative(&inst);
+    //greedy_iterative(&inst);
 
     //extra_mileage(&inst);
+    
+    grasp_iterative(&inst);
 
     //plot tsp instance
     plot_solution(&inst);

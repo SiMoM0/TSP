@@ -184,6 +184,106 @@ void extra_mileage(instance* inst) {
     printf("Extra Mileage heuristic z = %f\n", z);
 }
 
-void grasp(instance* inst, int start_node) {
+double grasp(instance* inst, int start_node, double p) {
+    //check start node validity
+    if(start_node < 0 || start_node >= inst->nnodes)
+        print_error("Invalid start node");
 
+    //TODO track execution time
+
+    //set probability
+    double p1 = p;
+    double p2 = 1 - p1;
+    
+    compute_distances(inst);
+
+    int* solution = (int* ) calloc(inst->nnodes, sizeof(int));
+
+    //initialize all the cell to -1
+    for(int i=0; i<inst->nnodes; ++i)
+        solution[i] = -1;
+
+    //solution objective value z
+    double z = 0;
+
+    //current node
+    int curr_node = start_node;
+    //current length of visited nodes
+    int len = 0;
+
+    //loop for the algorithm
+    while(len < inst->nnodes-1) {
+        //successor nodes
+        int succ_first = -1;
+        double first_cost =__DBL_MAX__;
+        int succ_second = -1;
+        double second_cost = __DBL_MAX__;
+
+        //search the next node
+        for(int i=0; i<inst->nnodes; ++i) {
+            //check nodes not visited yet
+            if(curr_node == i || solution[i] != -1)
+                continue;
+            
+            double cost = get_cost(curr_node, i, inst);
+            if(cost < first_cost) {
+                succ_second = succ_first;
+                second_cost = first_cost;
+                succ_first = i;
+                first_cost = cost;
+            }
+        }
+
+        //get random probability
+        double prob = (double) rand() / RAND_MAX;
+
+        //set successor node, update current node and objective
+        if(prob > p2 || succ_second == -1) {
+            solution[curr_node] = succ_first;
+            curr_node = succ_first;
+            z += first_cost;
+        }
+        else {
+            solution[curr_node] = succ_second;
+            curr_node = succ_second;
+            z += second_cost;
+        }
+
+        //update len
+        len++;
+    }
+
+    //set successor of last node visited
+    solution[curr_node] = start_node;
+
+    //check solution validity
+    check_solution(solution, inst->nnodes);
+
+    //update objective value
+    z += get_cost(start_node, curr_node, inst);
+
+    //update model solution
+    update_solution(z, solution, inst);
+
+    printf("Start node [%d] with p1 [%f] - Solution value: %f\n", start_node, p, z);
+    
+    return z;
+}
+
+void grasp_iterative(instance* inst) {
+    //TODO track execution time
+    int best_node = 0;
+    double best_cost = __DBL_MAX__;
+    double p = 0.8;
+
+    for(int i=0; i<inst->nnodes; ++i) {
+        //p = (double) rand() / RAND_MAX;
+        double cost = grasp(inst, i, p);
+        if(cost < best_cost) {
+            best_node = i;
+            best_cost = cost;
+        }
+    }
+
+    printf("Grasp heuristic - Best starting node = [%d] with p1 = [%f] - Cost = [%f]\n", best_node, p, best_cost);
 }

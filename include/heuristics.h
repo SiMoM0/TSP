@@ -33,5 +33,14 @@ void extra_mileage(instance* inst);
  * 
  * @param inst model instance
  * @param start_node index of the starting node
+ * @param p probability of selecting first best node
+ * @return objective value
 */
-void grasp(instance* inst, int start_node);
+double grasp(instance* inst, int start_node, double p);
+
+/**
+ * Grasp heuristic performed on every node
+ * 
+ * @param inst model instance
+*/
+void grasp_iterative(instance* inst);
