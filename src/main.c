@@ -22,10 +22,12 @@ int main(int argc, char** argv) {
     parse_model(&inst);
 
     //execute algorithm
-    //greedy(&inst, 0);
-    greedy_iterative(&inst);
+    greedy(&inst, 20);
+    //greedy_iterative(&inst);
 
     //extra_mileage(&inst);
+    
+    alg_2opt(&inst);
     
     //grasp_iterative(&inst);
 

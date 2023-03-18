@@ -63,8 +63,8 @@ void create_command(char* output_path, instance* inst) {
     fprintf(cf, "set xlabel 'X-axis Label'\n");
     fprintf(cf, "set ylabel 'Y-axis Label'\n\n");
 
-    fprintf(cf, "set style line 1 lc rgb '#ff0000' lt 1 lw 2 pt 7 pi -1 ps 1.5\n");
-    fprintf(cf, "set pointintervalbox 2\n\n");
+    fprintf(cf, "set style line 1 lc rgb '#ff0000' lt 1 lw 2 pt 7 pi -1 ps 1.5\n\n");
+    //fprintf(cf, "set pointintervalbox 2\n\n");
 
     fprintf(cf, "plot '%s' with linespoints ls 1", data_path);
 

@@ -44,3 +44,10 @@ double grasp(instance* inst, int start_node, double p);
  * @param inst model instance
 */
 void grasp_iterative(instance* inst);
+
+/**
+ * 2-opt algorithm
+ * 
+ * @param inst model instance
+*/
+void alg_2opt(instance* inst);

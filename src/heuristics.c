@@ -67,7 +67,7 @@ double greedy(instance* inst, int start_node) {
     //update model solution
     update_solution(z, solution, inst);
 
-    //printf("Start node [%d] - Solution value: %f\n", start_node, z);
+    printf("Start node [%d] - Solution value: %f\n", start_node, z);
     
     return z;
 }
@@ -286,4 +286,80 @@ void grasp_iterative(instance* inst) {
     }
 
     printf("Grasp heuristic - Best starting node = [%d] with p1 = [%f] - Cost = [%f]\n", best_node, p, best_cost);
+}
+
+void alg_2opt(instance* inst) {
+    //get instance solution and objective value
+    int* solution = calloc(inst->nnodes, sizeof(int));
+    memcpy(solution, inst->best_sol, inst->nnodes * sizeof(int));
+
+    double z = inst->zbest;
+
+    int improve = 1;
+    while(improve) {
+        improve = 0;
+
+        //Consider current crossing edges A-D and C-B
+        //save nodes involved in the edges
+        int nodeA = -1;
+        int nodeB = -1;
+        int nodeC = -1;
+        int nodeD = -1;
+
+        double best_delta = 0;
+
+        //loop through all edges
+        for(int i=0; i<inst->nnodes-1; ++i) {
+            for(int j=i+1; j<inst->nnodes; ++j) {
+                //skip consecutive edges
+                if(solution[i] == j || solution[j] == i)
+                    continue;
+
+                //current edges weight of A-D and C-B
+                double curr_weight = get_cost(i, solution[i], inst) + get_cost(j, solution[j], inst);
+                //weight considering new edges C-A and B-D
+                double new_weight = get_cost(j, i, inst) + get_cost(solution[j], solution[i], inst);
+                double delta = curr_weight - new_weight;
+
+                //save new best edges to swap
+                if(new_weight < curr_weight && delta > best_delta) {
+                    //printf("New better edge found between (%d, %d) and (%d, %d) with delta = [%f]\n", j, i, solution[j], solution[i], delta);
+                    improve = 1;
+                    nodeA = i;
+                    nodeC = j;
+                    nodeD = solution[i];
+                    nodeB = solution[j];
+                    best_delta = delta;
+                }
+            }
+        }
+        if(!improve)
+            break;
+
+        //reverse path from node B to node A
+        int prev = nodeB;
+        int node = solution[nodeB];
+        while(node != nodeD) {
+            int next_node = solution[node];
+            solution[node] = prev;
+            prev = node;
+            //update node
+            node = next_node;
+        }
+
+        //set new edges C-A B-D
+        solution[nodeB] = nodeD;
+        solution[nodeC] = nodeA;
+
+        check_solution(solution, inst->nnodes);
+
+        //update objective
+        z -= best_delta;
+    }
+
+    printf("COMPLETED 2-OPT with z = [%f]\n\n", z);
+
+    update_solution(z, solution, inst);
+
+    free(solution);
 }
