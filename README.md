@@ -49,5 +49,5 @@ Run the main program with the following command and set the desired parameters:
 Example: solve the TSP regarding the **att48** instance stored in the `../data/att48.tsp` file, running the command:
 
 ```
-./main -file ../data/a280.tsp -time_limit 60 -seed 10 -verbose 10
+./main -file ../data/att48.tsp -time_limit 60 -seed 10 -verbose 10
 ```
