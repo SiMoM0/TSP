@@ -9,7 +9,7 @@ project (TSP)
 include_directories(include)
 
 # Add an executable
-add_executable(main src/main.c src/utils.c src/heuristics.c src/plot.c)
+add_executable(main src/main.c src/utils.c src/heuristics.c src/vns.c src/plot.c)
 
 # math library
 target_link_libraries(main PRIVATE m)

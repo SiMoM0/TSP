@@ -338,3 +338,21 @@ void print_help(){
 	printf("-seed <seed>              The seed for random number generation\n");
 	printf("-verbose <level>          It displays detailed processing information on the screen\n");
 }
+
+void swap(int* a, int* b) {
+	int tmp = *a;
+	*a = *b;
+	*b = tmp;
+}
+
+double get_elapsed_time(struct timeval start, struct timeval end) {
+    long seconds = end.tv_sec - start.tv_sec;
+    long microseconds = end.tv_usec - start.tv_usec;
+    double elapsed = seconds + microseconds * 1e-6;
+    return elapsed;
+}
+
+
+int rand_choice(int from, int to) {
+    return from + ((int) (((double) random()) / RAND_MAX * (to - from)));
+}

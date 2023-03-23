@@ -4,6 +4,8 @@
 
 #include "utils.h"
 
+void shake(instance* inst);
+
 /**
  * Greedy heuristic (Nearest Neighbor)
  * 
@@ -49,5 +51,6 @@ void grasp_iterative(instance* inst);
  * 2-opt algorithm
  * 
  * @param inst model instance
+ ** @return 1 if the solution was improved, 0 otherwise
 */
-void alg_2opt(instance* inst);
+int alg_2opt(instance* inst);

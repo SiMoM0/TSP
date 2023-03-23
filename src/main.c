@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "heuristics.h"
 #include "plot.h"
+#include "vns.h"
 
 int main(int argc, char** argv) {
 
@@ -27,9 +28,11 @@ int main(int argc, char** argv) {
 
     //extra_mileage(&inst);
     
-    alg_2opt(&inst);
-    
+    //int updated = alg_2opt(&inst);
+   
     //grasp_iterative(&inst);
+
+    int vns_result = VNS(&inst);
 
     //plot tsp instance
     plot_solution(&inst);

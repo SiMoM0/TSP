@@ -6,7 +6,9 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 #include "tsp.h"
+
 
 /**
  * Calculate the maximum between two integers
@@ -176,3 +178,19 @@ void print_instance(instance* inst);
  * Print info about command line arguments
 */
 void print_help();
+
+/**
+ * swap two elements
+*/
+void swap(int* a, int* b);
+
+double get_elapsed_time(struct timeval start, struct timeval end);
+
+/**
+ * Choses a random number in between [from, to)
+ * 
+ * @param from The left bound 
+ * @param to The right bound
+ * @returns Random integer between [from, to)
+ */
+int rand_choice(int from, int to);

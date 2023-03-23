@@ -288,17 +288,17 @@ void grasp_iterative(instance* inst) {
     printf("Grasp heuristic - Best starting node = [%d] with p1 = [%f] - Cost = [%f]\n", best_node, p, best_cost);
 }
 
-void alg_2opt(instance* inst) {
+int alg_2opt(instance* inst) {
     //get instance solution and objective value
     int* solution = calloc(inst->nnodes, sizeof(int));
     memcpy(solution, inst->best_sol, inst->nnodes * sizeof(int));
 
     double z = inst->zbest;
-
+    int updated = 0;
     int improve = 1;
     while(improve) {
         improve = 0;
-
+        
         //Consider current crossing edges A-D and C-B
         //save nodes involved in the edges
         int nodeA = -1;
@@ -324,6 +324,7 @@ void alg_2opt(instance* inst) {
                 //save new best edges to swap
                 if(new_weight < curr_weight && delta > best_delta) {
                     //printf("New better edge found between (%d, %d) and (%d, %d) with delta = [%f]\n", j, i, solution[j], solution[i], delta);
+                    updated = 1;
                     improve = 1;
                     nodeA = i;
                     nodeC = j;
@@ -345,6 +346,7 @@ void alg_2opt(instance* inst) {
             prev = node;
             //update node
             node = next_node;
+
         }
 
         //set new edges C-A B-D
@@ -357,9 +359,10 @@ void alg_2opt(instance* inst) {
         z -= best_delta;
     }
 
-    printf("COMPLETED 2-OPT with z = [%f]\n\n", z);
+    //printf("COMPLETED 2-OPT with z = [%f]\n\n", z);
 
     update_solution(z, solution, inst);
 
     free(solution);
+    return updated;
 }
