@@ -351,3 +351,23 @@ void print_help(){
 	printf("-seed <seed>              The seed for random number generation\n");
 	printf("-verbose <level>          It displays detailed processing information on the screen\n");
 }
+
+void progressbar(int progress, int total) {
+    int width = 50;
+    float progress_ratio = (float) progress / (float) total;
+    int bar_progress = (int)(progress_ratio * width);
+
+    printf("[");
+    for(int i=0; i<width; ++i) {
+        if(i<bar_progress) {
+            printf("=");
+        } else {
+            printf(" ");
+        }
+    }
+    printf("] %d%%\t%d/%ds\r", (int)(progress_ratio * 100), progress, total);
+    fflush(stdout);
+
+	//clear current line
+	printf("\033[2K");
+}

@@ -33,6 +33,8 @@ void tabu_search(instance* inst) {
         if(difftime(end, start) > inst->timelimit)
             break;
 
+        progressbar((int) difftime(end, start), inst->timelimit);
+
         //nodes involved
         int nodeA = -1;
         int nodeB = -1;

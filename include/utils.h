@@ -185,3 +185,11 @@ void print_instance(instance* inst);
  * Print info about command line arguments
 */
 void print_help();
+
+/**
+ * Print a progress bar
+ * 
+ * @param progress progress
+ * @param total total value
+*/
+void progressbar(int progress, int total);
