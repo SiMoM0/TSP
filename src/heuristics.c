@@ -6,8 +6,6 @@ double greedy(instance* inst, int start_node) {
         print_error("Invalid start node");
 
     //TODO track execution time
-    
-    compute_distances(inst);
 
     int* solution = (int* ) calloc(inst->nnodes, sizeof(int));
 
@@ -67,6 +65,8 @@ double greedy(instance* inst, int start_node) {
     //update model solution
     update_solution(z, solution, inst);
 
+    free(solution);
+
     printf("Start node [%d] - Solution value: %f\n", start_node, z);
     
     return z;
@@ -90,8 +90,6 @@ void greedy_iterative(instance* inst) {
 
 void extra_mileage(instance* inst) {
     //TODO track execution time
-    //compute all the distances
-    compute_distances(inst);
 
     //furthest nodes
     int node1 = 0;
@@ -194,8 +192,6 @@ double grasp(instance* inst, int start_node, double p) {
     //set probability
     double p1 = p;
     double p2 = 1 - p1;
-    
-    compute_distances(inst);
 
     int* solution = (int* ) calloc(inst->nnodes, sizeof(int));
 
@@ -264,6 +260,8 @@ double grasp(instance* inst, int start_node, double p) {
 
     //update model solution
     update_solution(z, solution, inst);
+
+    free(solution);
 
     //printf("Start node [%d] with p1 [%f] - Solution value: %f\n", start_node, p, z);
     

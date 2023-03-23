@@ -21,6 +21,9 @@ int main(int argc, char** argv) {
     // read tsp instance
     parse_model(&inst);
 
+    //compute distances
+    compute_distances(&inst);
+
     //execute algorithm
     greedy(&inst, 20);
     //greedy_iterative(&inst);
