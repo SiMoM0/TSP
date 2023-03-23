@@ -133,17 +133,8 @@ void tabu_search(instance* inst) {
         if(tnow - tabu_vector[nodeA] <= tenure)
             continue;
 
-        //TODO implement separate function to revert a path
-        //revert path from C to B;
-        int prev = nodeC;
-        int node = curr_solution[nodeC];
-        while(node != nodeD) {
-            int next_node = curr_solution[node];
-            curr_solution[node] = prev;
-            prev = node;
-            //update node
-            node = next_node;
-        }
+        //reverse path from C to B;
+        reverse_path(curr_solution, nodeC, nodeB);
 
         //swap edges A-C, B-D to A-B and C-D  
         curr_solution[nodeA] = nodeB;

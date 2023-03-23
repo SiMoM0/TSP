@@ -141,6 +141,15 @@ void compute_distances(instance* inst);
 double get_cost(int i, int j, instance* inst);
 
 /**
+ * Reverse a path in a tour
+ * 
+ * @param solution array representing the solution
+ * @param start start node of the path
+ * @param end end node of the path
+*/
+void reverse_path(int* solution, int start, int end);
+
+/**
  * Update model solution if the input cost is better
  * 
  * @param z solution cost

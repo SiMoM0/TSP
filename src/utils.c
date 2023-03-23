@@ -284,6 +284,19 @@ double get_cost(int i, int j, instance* inst) {
 	return inst->distances[i*inst->nnodes + j];
 }
 
+void reverse_path(int* solution, int start, int end) {
+	int prev = start;
+    int node = solution[start];
+	int last_node = solution[end];
+    while(node != last_node) {
+        int next_node = solution[node];
+        solution[node] = prev;
+        prev = node;
+        //update node
+        node = next_node;
+    }
+}
+
 void update_solution(double z, int* solution, instance* inst) {
 	if(inst->zbest < 0.0 || z < inst->zbest) {
 		inst->zbest = z;
