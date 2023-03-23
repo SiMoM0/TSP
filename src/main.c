@@ -2,6 +2,7 @@
 
 #include "utils.h"
 #include "heuristics.h"
+#include "metaheuristics.h"
 #include "plot.h"
 
 int main(int argc, char** argv) {
@@ -30,7 +31,9 @@ int main(int argc, char** argv) {
 
     //extra_mileage(&inst);
     
-    alg_2opt(&inst);
+    //alg_2opt(&inst);
+
+    tabu_search(&inst);
     
     //grasp_iterative(&inst);
 
