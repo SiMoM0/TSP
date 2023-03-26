@@ -352,7 +352,18 @@ double get_elapsed_time(struct timeval start, struct timeval end) {
     return elapsed;
 }
 
-
+//TO DO to check
 int rand_choice(int from, int to) {
-    return from + ((int) (((double) random()) / RAND_MAX * (to - from)));
+	/*double r = rand();
+	int diff = (to - from);
+	int molt = RAND_MAX*diff;
+	double div = r/molt;
+    int c = from + ((int) (r / RAND_MAX * diff));*/
+	
+	/*printf("\nr = %f, diff = %d, molt = %d, div = %f, c = %d", r, diff, molt, div, c);
+	return c;*/
+
+	//old implementation
+	//return from + ((int) (((double) rand()) / RAND_MAX * (to - from)));
 }
+

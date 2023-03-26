@@ -7,20 +7,23 @@ void shake(instance* inst) {
     int* solution = calloc(inst->nnodes, sizeof(int));
     memcpy(solution, inst->best_sol, inst->nnodes * sizeof(int));
     double z = inst->zbest;
-    printf("\ninit zbest = %f",z);
 
-    for(int i=0; i<inst->nnodes; i++){
+
+    //print succ vector
+    /*for(int i=0; i<inst->nnodes; i++){
         printf("\nsolution[%d] = %d", i, solution[i]);
     }
+    */
 
-    int idx1=rand_choice(0,inst->nnodes);
+    int idx1 =  rand() % inst->nnodes;
     int idx2=idx1;
     int idx3=idx1;
     while(idx2==idx1 || abs(idx1-idx2)<=1){    // no same node and not successor or predecessor idx1
-        idx2=rand_choice(0,inst->nnodes);
+        idx2=rand() % inst->nnodes;
+        
     }
     while(idx3==idx1 || idx3==idx2 || abs(idx1-idx3)<=1 || abs(idx2-idx3)<=1){
-        idx3=rand_choice(0,inst->nnodes);
+        idx3=rand() % inst->nnodes;
     }
     //put them in order
     if(idx1>idx2){
@@ -32,8 +35,8 @@ void shake(instance* inst) {
     if(idx2>idx3){
         swap(&idx2, &idx3);
     }
-
-    printf("\nidx1 = %d, idx2 = %d, idx3 = %d", idx1, idx2, idx3);
+    //printf("\nidx1 = %d, idx2 = %d, idx3 = %d", idx1, idx2, idx3);
+    
     //choose the nodes that are involved in the swap edges procedure
     int nodeA = idx1;
     int nodeB = solution[idx1];
@@ -78,8 +81,8 @@ void shake(instance* inst) {
     for(int i=0; i<inst->nnodes; i++) {
         z += get_cost(i,solution[i], inst);
     }
-    printf("\nzbest after edges swap = %f", z);
-    //printf("COMPLETED 3-OPT with z = [%f]\n\n", z);
+    //printf("\nzbest after edges swap = %f", z);
+    
 
     //NOTA: non fa l'update se z > zbest!!!
     update_solution(z, solution, inst);
@@ -92,46 +95,34 @@ void shake(instance* inst) {
 int VNS(instance* inst) {
     int updated = 0;
     //setting the time limit
-    int time_limit = 0;
-    if (inst->timelimit <= 0) {
-        printf("Time limit set by default to %d.", DEFAULT_TIME_LIM);
-        time_limit = DEFAULT_TIME_LIM;
-    } else {
-        time_limit = inst->timelimit;
-    }
-
-    //Start counting time from now
-    struct timeval start, end;
-    gettimeofday(&start, 0);
+    time_t start, end;
+    time(&start);
 
     //compute the 2-opt alg of current instance
-    //int improve1 = alg_2opt(inst);
+    int improve1 = alg_2opt(inst);
     //printf("\nimprove1 = %d\n", improve1);
 
     //store locally the main info: best_solution, zbest 
     int* solution = calloc(inst->nnodes, sizeof(int));
     memcpy(solution, inst->best_sol, inst->nnodes * sizeof(int));
     double z = inst->zbest;
-    
-    
-    /*while(1){*/
-    int flag = 0; //sto facendo una prova eseguendo il ciclo solo 9 volte
-    while(flag<9) {
-        flag++;
-    
-        //Check elapsed time
-        gettimeofday(&end, 0);
-        double elapsed = get_elapsed_time(start, end);
-        if (elapsed > time_limit) {
-            //errore
+
+    while(1) {
+
+        time(&end);
+        if(difftime(end, start) > inst->timelimit)
             break;
-        }
+    
         //Modify current solution to a random point in the neighboorhood
         //NOTA: va a modificare la current instance (non dovrebbe forse)
+        //apply two times the shake fuction in order to modify 6 edges in total
         shake(inst);
-        printf("\n\nz_after shake: %f\n\n", inst->zbest);
+        shake(inst);
+
+        //printf("\n\nz_after shake: %f\n\n", inst->zbest);
+
         //compute the 2-opt of the new solution
-        alg_2opt(inst); //non cambia dopo la prima perchè la soluzione non viene aggiornata e quindi il 2-opt è sempre il migliore trovato fino ad ora
+        alg_2opt(inst); 
         printf("\nz_best after 2-opt of swapped edges: %f", inst->zbest);
         //If I found that this solution is better than the best, update the best solution with the current one
         if (inst->zbest < z) {
