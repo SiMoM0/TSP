@@ -49,5 +49,14 @@ void grasp_iterative(instance* inst);
  * 2-opt algorithm
  * 
  * @param inst model instance
+ * @param solution input solution
+ * @return new cost of the solution
 */
-void alg_2opt(instance* inst);
+double alg_2opt(instance* inst, int* input_solution);
+
+/**
+ * Greedy and 2-opt algorithm
+ * 
+ * @param inst model instance
+*/
+void greedy_2opt(instance* inst, int start_node);

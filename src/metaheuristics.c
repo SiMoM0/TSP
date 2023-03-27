@@ -1,4 +1,5 @@
 #include "metaheuristics.h"
+#include "heuristics.h"
 #include <time.h>
 
 void tabu_search(instance* inst) {
@@ -46,7 +47,7 @@ void tabu_search(instance* inst) {
         //----------
 
         //perform 2-opt considering tabu nodes
-        int improve = 1;
+        /*int improve = 1;
         while(improve) {
             improve = 0;
 
@@ -113,10 +114,16 @@ void tabu_search(instance* inst) {
                 best_obj = curr_obj;
                 memcpy(best_solution, curr_solution, inst->nnodes * sizeof(int));
             }
+        }*/
+        curr_obj = alg_2opt(inst, curr_solution);
+
+        if(curr_obj < best_obj) {
+            best_obj = curr_obj;
+            memcpy(best_solution, curr_solution, inst->nnodes * sizeof(int));
         }
 
         //-----------------
-        //RADNOM 2-OPT MOVE
+        //RANDOM 2-OPT MOVE
         //-----------------
 
         //perform a 2-opt move for a new worse neighbor solution
