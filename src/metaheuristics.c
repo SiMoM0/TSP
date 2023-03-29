@@ -1,6 +1,5 @@
 #include "metaheuristics.h"
 #include "heuristics.h"
-#include <time.h>
 
 void tabu_search(instance* inst) {
     //track execution time

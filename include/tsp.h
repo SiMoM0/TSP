@@ -5,7 +5,7 @@
 //hard-wired parameters
 #define XSMALL		  		  1e-5 		// 1e-4*	// tolerance used to decide ingerality of 0-1 var.s
 #define EPSILON		  		  1e-9		// 1e-9		// very small numerical tolerance
-
+#define DEFAULT_TIME_LIM      60       // 1 min
 /**
  * Point
 */

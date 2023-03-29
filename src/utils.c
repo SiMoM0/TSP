@@ -377,8 +377,6 @@ void shake(instance* inst, int* input_solution) {
     //printf("NEW EDGES [%d-%d] [%d-%d] [%d-%d]\n", nodeA, solution[nodeA], nodeC, solution[nodeC], nodeE, solution[nodeE]);
     
     check_solution(input_solution, inst->nnodes);
-    
-    compute_distances(inst);
 
     //debug_plot(inst, solution);
 

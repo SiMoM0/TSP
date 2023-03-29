@@ -294,7 +294,7 @@ double alg_2opt(instance* inst, int* input_solution) {
     int improve = 1;
     while(improve) {
         improve = 0;
-
+        
         //Consider current crossing edges A-D and C-B
         //save nodes involved in the edges
         int nodeA = -1;
