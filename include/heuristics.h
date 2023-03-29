@@ -27,7 +27,6 @@ void greedy_iterative(instance* inst);
 */
 void extra_mileage(instance* inst);
 
-
 /**
  * Grasp heuristic (Nearest Neighbor with random choice)
  * 
@@ -58,5 +57,22 @@ double alg_2opt(instance* inst, int* input_solution);
  * Greedy and 2-opt algorithm
  * 
  * @param inst model instance
+ * @param start_node index of starting node
 */
 void greedy_2opt(instance* inst, int start_node);
+
+/**
+ * Extra mileage algorithm and 2-opt
+ * 
+ * @param inst model instance
+*/
+void extra_mileage_2opt(instance* inst);
+
+/**
+ * Grasp and 2opt algorithm
+ * 
+ * @param inst model instance
+ * @param start_node index of the starting node
+ * @param p probability of selecting first best node
+*/
+void grasp_2opt(instance* inst, int start_node, double p);

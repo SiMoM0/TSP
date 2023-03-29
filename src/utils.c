@@ -182,7 +182,7 @@ void parse_command_line(int argc, char** argv, instance *inst) {
 	// default instance attributes
 	strcpy(inst->input_file, "NULL");
 	inst->randomseed = 10;
-	inst->timelimit = INFINITY;
+	inst->timelimit = DEFAULT_TIME_LIM;
 	inst->verbose = 0;
 	inst->nnodes = 0;
 	inst->zbest = -1;

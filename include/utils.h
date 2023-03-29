@@ -125,7 +125,7 @@ double man2d_dist(int i, int j, instance* inst);
 double euc2d_dist(int i, int j, instance* inst);
 
 /**
- * Compute the distances between all nodes
+ * Compute the distances between all nodes and store them into the distances matrix
  * 
  * @param inst model instance
 */

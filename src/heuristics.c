@@ -347,8 +347,6 @@ double alg_2opt(instance* inst, int* input_solution) {
 
     //printf("COMPLETED 2-OPT with z = [%f]\n\n", z);
 
-    update_solution(z, input_solution, inst);
-
     return z;
 }
 

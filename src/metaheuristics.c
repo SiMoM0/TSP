@@ -17,7 +17,7 @@ void tabu_search(instance* inst) {
 
     //tabu search variables
     int tnow = -1;
-    int tenure = 20;    //TODO explore different approaches for the tenure value
+    int tenure = inst->nnodes / 10 + 1;    //TODO explore different approaches for the tenure value
     int* tabu_vector = calloc(inst->nnodes, sizeof(int));
 
     for(int i=0; i<inst->nnodes; ++i)
@@ -45,13 +45,68 @@ void tabu_search(instance* inst) {
         //OPTIMIZATION PART
         //----------
 
-        curr_obj = alg_2opt(inst, curr_solution);
+        //perform 2-opt considering tabu nodes
+        int improve = 1;
+        while(improve) {
+            improve = 0;
 
-        if(curr_obj < best_obj) {
-            //printf("BETTER SOLUTION FOUND WITH Z = %f\n", curr_obj);
-            best_obj = curr_obj;
-            memcpy(best_solution, curr_solution, inst->nnodes * sizeof(int));
+            double best_delta = 0;
+
+            //loop through all edges
+            for(int i=0; i<inst->nnodes-1; ++i) {
+                //skip tabu node
+                if(tnow - tabu_vector[i] <= tenure || tnow-tabu_vector[curr_solution[i]] <= tenure)
+                    continue;
+
+                for(int j=i+1; j<inst->nnodes; ++j) {
+                    //skip consecutive edges
+                    if(curr_solution[i] == j || curr_solution[j] == i)
+                        continue;
+
+                    //skip tabu nodes
+                    if(tnow - tabu_vector[j] <= tenure || tnow - tabu_vector[curr_solution[j]] <= tenure)
+                        continue;
+
+                    //current edges weight of A-D and C-B
+                    double curr_weight = get_cost(i, curr_solution[i], inst) + get_cost(j, curr_solution[j], inst);
+                    //weight considering new edges C-A and B-D
+                    double new_weight = get_cost(j, i, inst) + get_cost(curr_solution[j], curr_solution[i], inst);
+                    double delta = curr_weight - new_weight;
+
+                    //save new best edges to swap
+                    if(new_weight < curr_weight && delta > best_delta) {
+                        //printf("New better edge found between (%d, %d) and (%d, %d) with delta = [%f]\n", j, i, curr_solution[j], curr_solution[i], delta);
+                        improve = 1;
+                        nodeA = i;
+                        nodeC = j;
+                        nodeD = curr_solution[i];
+                        nodeB = curr_solution[j];
+                        best_delta = delta;
+                    }
+                }
+            }
+            if(!improve)
+                break;
+
+            reverse_path(curr_solution, nodeB, nodeA);
+
+            //set new edges C-A  and B-D
+            curr_solution[nodeB] = nodeD;
+            curr_solution[nodeC] = nodeA;
+
+            check_solution(curr_solution, inst->nnodes);
+
+            //update objective
+            curr_obj -= best_delta;
+
+            //update best solution
+            if(curr_obj < best_obj) {
+                best_obj = curr_obj;
+                memcpy(best_solution, curr_solution, inst->nnodes * sizeof(int));
+            }
         }
+        //printf("BETTER CURRENT SOLUTION FOUND WITH Z = %f\n", curr_obj);
+        //debug_plot(inst, curr_solution);
 
         //-----------------
         //RANDOM 2-OPT MOVE
@@ -82,6 +137,8 @@ void tabu_search(instance* inst) {
 
         //update current objective
         curr_obj += get_cost(nodeA, nodeB, inst) + get_cost(nodeC, nodeD, inst) - old_cost;
+        //printf("CURRENT OBJECTIVE = [%f]\n", curr_obj);
+        //debug_plot(inst, curr_solution);
 
         //insert nodeA in tabu
         tabu_vector[nodeA] = tnow;
