@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "plot.h"
 
 int imax(int i1, int i2) {
 	return (i1 > i2) ? i1 : i2;
@@ -306,19 +307,96 @@ void update_solution(double z, int* solution, instance* inst) {
 
 void check_solution(int* solution, int length) {
 	int* check_array = calloc(length, sizeof(int));
-	int ret_value = 1;
 
 	for(int i=0; i<length; ++i) {
-		check_array[solution[i]] = 1;
+		check_array[i] = 0;
 	}
 
 	for(int i=0; i<length; ++i) {
-		if(check_array[i] != 1)
+		check_array[solution[i]]++;
+	}
+
+	for(int i=0; i<length; ++i) {
+		if(check_array[i] != 1) {
 			debug("TSP solution not valid");
+			break;
+		}
 	}
 
 	free(check_array);
 	//debug("TSP solution is valid");
+}
+
+void shake(instance* inst, int* input_solution) {
+    double z = 0;
+
+    int idx1 = rand() % inst->nnodes;
+    int idx2=idx1;
+    int idx3=idx1;
+    while(idx2==idx1 || abs(idx1-idx2)<=1){    // no same node and not successor or predecessor idx1
+        idx2=rand() % inst->nnodes;
+        
+    }
+    while(idx3==idx1 || idx3==idx2 || abs(idx1-idx3)<=1 || abs(idx2-idx3)<=1){
+        idx3=rand() % inst->nnodes;
+    }
+    //put them in order
+    if(idx1>idx2){
+        swap(&idx1, &idx2);
+    }
+    if(idx1>idx3){
+        swap(&idx1, &idx3);
+    }   
+    if(idx2>idx3){
+        swap(&idx2, &idx3);
+    }
+    //printf("idx1 = %d, idx2 = %d, idx3 = %d\n", idx1, idx2, idx3);
+
+    int* tour = calloc(inst->nnodes, sizeof(int));
+    int node = input_solution[0];
+    for(int i=0; i<inst->nnodes; ++i) {
+        tour[i] = node;
+        node = input_solution[node];
+    }
+
+    //choose the nodes that are involved in the swap edges procedure
+    int nodeA = tour[idx1];
+    int nodeB = input_solution[nodeA];
+    int nodeC = tour[idx2];
+    int nodeD = input_solution[nodeC];
+    int nodeE = tour[idx3];
+    int nodeF = input_solution[nodeE];
+
+    //printf("EDGES [%d-%d] [%d-%d] [%d-%d]\n", nodeA, nodeB, nodeC, nodeD, nodeE, nodeF);
+
+    //case 7
+    input_solution[nodeA] = nodeD; //succ of A is D
+    input_solution[nodeE] = nodeB; //succ of E is B
+    input_solution[nodeC] = nodeF; //succ of C is F
+
+    //printf("NEW EDGES [%d-%d] [%d-%d] [%d-%d]\n", nodeA, solution[nodeA], nodeC, solution[nodeC], nodeE, solution[nodeE]);
+    
+    check_solution(input_solution, inst->nnodes);
+    
+    compute_distances(inst);
+
+    //debug_plot(inst, solution);
+
+    
+    //compute the new cost 
+    for(int i=0; i<inst->nnodes; i++) {
+        z += get_cost(i, input_solution[i], inst);
+    }
+
+    //printf("New cost after shake: %f\n", z);
+
+    free(tour);
+}
+
+void swap(int* a, int* b) {
+	int tmp = *a;
+	*a = *b;
+	*b = tmp;
 }
 
 void free_instance(instance *inst) {
@@ -350,6 +428,13 @@ void print_help(){
     printf("-time_limit <time>        The time limit in seconds\n");
 	printf("-seed <seed>              The seed for random number generation\n");
 	printf("-verbose <level>          It displays detailed processing information on the screen\n");
+}
+
+void debug_plot(instance* inst, int* input_solution) {
+	memcpy(inst->best_sol, input_solution, inst->nnodes * sizeof(int));
+    plot_solution(inst);
+    printf("ENTER to continue");
+    getchar();
 }
 
 void progressbar(int progress, int total) {

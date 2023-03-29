@@ -168,6 +168,22 @@ void update_solution(double z, int* solution, instance* inst);
 void check_solution(int* solution, int length);
 
 /**
+ * Perform a 3-opt move on the input_instance
+ * 
+ * @param inst model instance
+ * @param input_solution input solution
+*/
+void shake(instance* inst, int* input_solution);
+
+/**
+ * Swap two integer elements
+ * 
+ * @param a first integer
+ * @param b second integer
+*/
+void swap(int* a, int* b);
+
+/**
  * Free memory regarding the tsp instance
  * 
  * @param inst tsp model instance
@@ -185,6 +201,14 @@ void print_instance(instance* inst);
  * Print info about command line arguments
 */
 void print_help();
+
+/**
+ * Plot intermediate solutions for debug purpose
+ * 
+ * @param inst model instance
+ * @param input_solution current solution
+*/
+void debug_plot(instance* inst, int* input_solution);
 
 /**
  * Print a progress bar

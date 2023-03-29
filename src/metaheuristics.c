@@ -46,78 +46,10 @@ void tabu_search(instance* inst) {
         //OPTIMIZATION PART
         //----------
 
-        //perform 2-opt considering tabu nodes
-        /*int improve = 1;
-        while(improve) {
-            improve = 0;
-
-            double best_delta = 0;
-
-            //loop through all edges
-            for(int i=0; i<inst->nnodes-1; ++i) {
-                //skip tabu node
-                if(tnow - tabu_vector[i] <= tenure || tnow-tabu_vector[curr_solution[i]] <= tenure)
-                    continue;
-
-                for(int j=i+1; j<inst->nnodes; ++j) {
-                    //skip consecutive edges
-                    if(curr_solution[i] == j || curr_solution[j] == i)
-                        continue;
-
-                    //skip tabu nodes
-                    if(tnow - tabu_vector[j] <= tenure || tnow - tabu_vector[curr_solution[j]] <= tenure)
-                        continue;
-
-                    //current edges weight of A-D and C-B
-                    double curr_weight = get_cost(i, curr_solution[i], inst) + get_cost(j, curr_solution[j], inst);
-                    //weight considering new edges C-A and B-D
-                    double new_weight = get_cost(j, i, inst) + get_cost(curr_solution[j], curr_solution[i], inst);
-                    double delta = curr_weight - new_weight;
-
-                    //save new best edges to swap
-                    if(new_weight < curr_weight && delta > best_delta) {
-                        //printf("New better edge found between (%d, %d) and (%d, %d) with delta = [%f]\n", j, i, curr_solution[j], curr_solution[i], delta);
-                        improve = 1;
-                        nodeA = i;
-                        nodeC = j;
-                        nodeD = curr_solution[i];
-                        nodeB = curr_solution[j];
-                        best_delta = delta;
-                    }
-                }
-            }
-            if(!improve)
-                break;
-
-            //reverse path from node B to node A
-            int prev = nodeB;
-            int node = curr_solution[nodeB];
-            while(node != nodeD) {
-                int next_node = curr_solution[node];
-                curr_solution[node] = prev;
-                prev = node;
-                //update node
-                node = next_node;
-            }
-
-            //set new edges C-A  and B-D
-            curr_solution[nodeB] = nodeD;
-            curr_solution[nodeC] = nodeA;
-
-            check_solution(curr_solution, inst->nnodes);
-
-            //update objective
-            curr_obj -= best_delta;
-
-            //update best solution
-            if(curr_obj < best_obj) {
-                best_obj = curr_obj;
-                memcpy(best_solution, curr_solution, inst->nnodes * sizeof(int));
-            }
-        }*/
         curr_obj = alg_2opt(inst, curr_solution);
 
         if(curr_obj < best_obj) {
+            //printf("BETTER SOLUTION FOUND WITH Z = %f\n", curr_obj);
             best_obj = curr_obj;
             memcpy(best_solution, curr_solution, inst->nnodes * sizeof(int));
         }
@@ -167,4 +99,51 @@ void tabu_search(instance* inst) {
     free(best_solution);
     free(curr_solution);
     free(tabu_vector);
+}
+
+void vns(instance* inst) {
+    //track execution time
+    time_t start, end;
+    time(&start);
+
+    //best objective and solution
+    double best_obj = inst->zbest;
+    int* best_solution = calloc(inst->nnodes, sizeof(int));
+
+    //current objective and solution
+    double curr_obj = inst->zbest;
+    int* curr_solution = calloc(inst->nnodes, sizeof(int));
+    memcpy(curr_solution, inst->best_sol, inst->nnodes * sizeof(int));
+
+    int i = 0;
+    
+    while(1) {
+        time(&end);
+        if(difftime(end, start) > inst->timelimit)
+            break;
+
+        progressbar((int) difftime(end, start), inst->timelimit);
+
+        //Optimization part
+        curr_obj = alg_2opt(inst, curr_solution);
+
+        if(curr_obj < best_obj) {
+            printf("BETTER SOLUTION FOUND WITH Z = %f\n", curr_obj);
+            best_obj = curr_obj;
+            memcpy(best_solution, curr_solution, inst->nnodes * sizeof(int));
+        }
+
+        //Double 3 opt move
+        shake(inst, curr_solution);
+        shake(inst, curr_solution);
+    }
+
+    check_solution(best_solution, inst->nnodes);
+
+    memcpy(inst->best_sol, best_solution, inst->nnodes * sizeof(int));
+
+    printf("FINAL BEST OBJECTIVE = [%f]\n", best_obj);
+
+    free(best_solution);
+    free(curr_solution);
 }

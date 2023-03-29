@@ -287,10 +287,6 @@ void grasp_iterative(instance* inst) {
 }
 
 double alg_2opt(instance* inst, int* input_solution) {
-    //get instance solution and objective value
-    //int* solution = calloc(inst->nnodes, sizeof(int));
-    //memcpy(solution, inst->best_sol, inst->nnodes * sizeof(int));
-
     double z;
     for(int i=0; i<inst->nnodes; ++i)
         z += get_cost(i, input_solution[i], inst);
@@ -322,8 +318,9 @@ double alg_2opt(instance* inst, int* input_solution) {
                 double delta = curr_weight - new_weight;
 
                 //save new best edges to swap
-                if(new_weight < curr_weight && delta > best_delta) {
-                    //printf("New better edge found between (%d, %d) and (%d, %d) with delta = [%f]\n", j, i, solution[j], solution[i], delta);
+                if(delta > best_delta) {
+                    //printf("Previous edges (%d-%d) (%d-%d)\n", i, input_solution[i], j, input_solution[j]);
+                    //printf("New better edge found between (%d, %d) and (%d, %d) with delta = [%f]\n", j, i, input_solution[j], input_solution[i], delta);
                     improve = 1;
                     nodeA = i;
                     nodeC = j;
@@ -336,16 +333,7 @@ double alg_2opt(instance* inst, int* input_solution) {
         if(!improve)
             break;
 
-        //reverse path from node B to node A
-        int prev = nodeB;
-        int node = input_solution[nodeB];
-        while(node != nodeD) {
-            int next_node = input_solution[node];
-            input_solution[node] = prev;
-            prev = node;
-            //update node
-            node = next_node;
-        }
+        reverse_path(input_solution, nodeB, nodeA);
 
         //set new edges C-A B-D
         input_solution[nodeB] = nodeD;
@@ -365,6 +353,13 @@ double alg_2opt(instance* inst, int* input_solution) {
 }
 
 void greedy_2opt(instance* inst, int start_node) {
-    //TODO implement greedy + 2opt
     greedy(inst, start_node);
+
+    int* curr_solution = calloc(inst->nnodes, sizeof(int));
+    memcpy(curr_solution, inst->best_sol, inst->nnodes * sizeof(int));
+
+    double z = alg_2opt(inst, curr_solution);
+    update_solution(z, curr_solution, inst);
+
+    free(curr_solution);
 }

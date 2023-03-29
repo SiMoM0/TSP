@@ -26,15 +26,19 @@ int main(int argc, char** argv) {
     compute_distances(&inst);
 
     //execute algorithm
-    greedy(&inst, 20);
+    greedy(&inst, 0);
     //greedy_iterative(&inst);
 
     //extra_mileage(&inst);
     
     //alg_2opt(&inst);
 
-    tabu_search(&inst);
+    //greedy_2opt(&inst, 20);
+
+    //tabu_search(&inst);
     
+    vns(&inst);
+
     //grasp_iterative(&inst);
 
     //plot tsp instance
