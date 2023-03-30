@@ -287,7 +287,7 @@ void grasp_iterative(instance* inst) {
 }
 
 double alg_2opt(instance* inst, int* input_solution) {
-    double z;
+    double z = 0;
     for(int i=0; i<inst->nnodes; ++i)
         z += get_cost(i, input_solution[i], inst);
 
@@ -358,6 +358,33 @@ void greedy_2opt(instance* inst, int start_node) {
 
     double z = alg_2opt(inst, curr_solution);
     update_solution(z, curr_solution, inst);
+    printf("New z after 2-opt = %f\n", z);
+
+    free(curr_solution);
+}
+
+void extra_mileage_2opt(instance* inst) {
+    extra_mileage(inst);
+
+    int* curr_solution = calloc(inst->nnodes, sizeof(int));
+    memcpy(curr_solution, inst->best_sol, inst->nnodes * sizeof(int));
+
+    double z = alg_2opt(inst, curr_solution);
+    update_solution(z, curr_solution, inst);
+    printf("New z after 2-opt = %f\n", z);
+
+    free(curr_solution);
+}
+
+void grasp_2opt(instance* inst, int start_node, double p) {
+    grasp(inst, start_node, p);
+
+    int* curr_solution = calloc(inst->nnodes, sizeof(int));
+    memcpy(curr_solution, inst->best_sol, inst->nnodes * sizeof(int));
+
+    double z = alg_2opt(inst, curr_solution);
+    update_solution(z, curr_solution, inst);
+    printf("New z after 2-opt = %f\n", z);
 
     free(curr_solution);
 }

@@ -34,6 +34,8 @@ int main(int argc, char** argv) {
     //alg_2opt(&inst);
 
     //greedy_2opt(&inst, 20);
+    //extra_mileage_2opt(&inst);
+    //grasp_2opt(&inst, 0, .5);
 
     //tabu_search(&inst);
     
