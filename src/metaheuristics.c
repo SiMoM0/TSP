@@ -2,6 +2,9 @@
 #include "heuristics.h"
 
 void tabu_search(instance* inst) {
+    if(inst->zbest == -1)
+        print_error("Initial solution is empty");
+
     //track execution time
     time_t start, end;
     time(&start);
@@ -17,13 +20,11 @@ void tabu_search(instance* inst) {
 
     //tabu search variables
     int tnow = -1;
-    int tenure = inst->nnodes / 10 + 1;    //TODO explore different approaches for the tenure value
+    int tenure = 10;    //TODO explore different approaches for the tenure value
     int* tabu_vector = calloc(inst->nnodes, sizeof(int));
 
     for(int i=0; i<inst->nnodes; ++i)
         tabu_vector[i] = -1000;
-
-    int i = 0;
     
     while(1) {
         //update tnow
@@ -74,7 +75,7 @@ void tabu_search(instance* inst) {
                     double delta = curr_weight - new_weight;
 
                     //save new best edges to swap
-                    if(new_weight < curr_weight && delta > best_delta) {
+                    if(delta > best_delta) {
                         //printf("New better edge found between (%d, %d) and (%d, %d) with delta = [%f]\n", j, i, curr_solution[j], curr_solution[i], delta);
                         improve = 1;
                         nodeA = i;
@@ -101,6 +102,7 @@ void tabu_search(instance* inst) {
 
             //update best solution
             if(curr_obj < best_obj) {
+                printf("ITER [%d] - BETTER SOLUTION FOUND WITH Z = %f\n", tnow, curr_obj);
                 best_obj = curr_obj;
                 memcpy(best_solution, curr_solution, inst->nnodes * sizeof(int));
             }
@@ -158,6 +160,9 @@ void tabu_search(instance* inst) {
 }
 
 void vns(instance* inst) {
+    if(inst->zbest == -1)
+        print_error("Initial solution is empty");
+        
     //track execution time
     time_t start, end;
     time(&start);

@@ -179,6 +179,11 @@ void parse_model(instance *inst) {
 }
 
 void parse_command_line(int argc, char** argv, instance *inst) {
+	if(argc<2){
+        printf("Usage: %s -help for the available commands\n", argv[0]);
+        exit(1);
+    }
+	
 	// default instance attributes
 	strcpy(inst->input_file, "NULL");
 	inst->randomseed = 10;
