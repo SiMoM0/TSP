@@ -172,7 +172,7 @@ void parse_model(instance *inst) {
 		print_error("Wrong format for the current simplified parser!!!!!!!!!");  
 	}                
 
-	if(verbose >= 10)
+	if(verbose >= 1)
 		print_instance(inst);
 
 	fclose(fin);
@@ -186,9 +186,10 @@ void parse_command_line(int argc, char** argv, instance *inst) {
 	
 	// default instance attributes
 	strcpy(inst->input_file, "NULL");
+	strcpy(inst->solver, "GREEDY");
 	inst->randomseed = 10;
 	inst->timelimit = DEFAULT_TIME_LIM;
-	inst->verbose = 0;
+	inst->verbose = 1;
 	inst->nnodes = 0;
 	inst->zbest = -1;
 
@@ -200,6 +201,7 @@ void parse_command_line(int argc, char** argv, instance *inst) {
 		if(strcmp(argv[i],"-file") == 0) {strcpy(inst->input_file,argv[++i]); continue;} 			// input file
 		if(strcmp(argv[i],"-input") == 0) {strcpy(inst->input_file,argv[++i]); continue;} 			// input file
 		if(strcmp(argv[i],"-f") == 0) {strcpy(inst->input_file,argv[++i]); continue;} 				// input file
+		if(strcmp(argv[i], "-solver") == 0) {strcpy(inst->solver, argv[++i]); continue;}				// solver
 		if(strcmp(argv[i],"-time_limit") == 0) {inst->timelimit = atof(argv[++i]); continue;}		// total time limit
 		if(strcmp(argv[i],"-seed") == 0) {inst->randomseed = abs(atoi(argv[++i])); continue;} 		// random seed
         if(strcmp(argv[i], "-verbose") == 0) {inst->verbose = atoi(argv[++i]); continue;}			// verbose parameter
@@ -412,6 +414,7 @@ void print_instance(instance* inst) {
 	printf("INSTANCE INFO\n");
 	printf("input file: 		%s\n", inst->input_file);
 	printf("number of nodes: 	%d\n", inst->nnodes);
+	printf("solver:			%s\n", inst->solver);
 	printf("time limit: 		%lf\n", inst->timelimit);
 	printf("random seed: 		%d\n", inst->randomseed);
 	printf("verbose:		%d\n", inst->verbose);
@@ -428,6 +431,7 @@ void print_instance(instance* inst) {
 void print_help(){
 	printf("AVAILABLE PARAMETERS TO MODIFY:\n");
 	printf("-file <file's path>       Path of the file to solve the problem\n");
+	printf("-solver <solver name>	  Selected solver for the problem\n");
     printf("-time_limit <time>        The time limit in seconds\n");
 	printf("-seed <seed>              The seed for random number generation\n");
 	printf("-verbose <level>          It displays detailed processing information on the screen\n");

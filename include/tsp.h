@@ -31,8 +31,8 @@ typedef struct instance {
     //input data
     int nnodes;
     point* points;
-    //TODO better to define an edge struct (?)
     double* distances;
+    int integer_costs;
 
     //parameters
     char name[100];
@@ -41,6 +41,8 @@ typedef struct instance {
     char input_file[1000];
     int verbose;
     edge_weight_type edge_weight_type;
+
+    char solver[100];
 
     //solution
     double zbest;
