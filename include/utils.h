@@ -142,6 +142,16 @@ void compute_distances(instance* inst);
 double get_cost(int i, int j, instance* inst);
 
 /**
+ * Xpos function for CPLEX
+ * 
+ * @param i index of first node
+ * @param j index of second node
+ * @param inst model instance
+ * @return position
+*/
+int xpos(int i, int j, instance* inst);
+
+/**
  * Reverse a path in a tour
  * 
  * @param solution array representing the solution

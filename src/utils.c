@@ -22,7 +22,7 @@ double nint(double x){
 }
 
 void print_error(const char *err) {
-    printf("\n\n ERROR: %s \n\n", err);
+    printf("\n\nERROR: %s \n\n", err);
     fflush(NULL);
     exit(1);
 }
@@ -292,6 +292,15 @@ double get_cost(int i, int j, instance* inst) {
 	return inst->distances[i*inst->nnodes + j];
 }
 
+int xpos(int i, int j, instance* inst) {
+	if(i == j)
+		print_error("i==j in xpos");
+	if(i < j)
+		return xpos(j, i, inst);
+	int pos = i * inst->nnodes + j - ((i+1) * (i+2)) / 2;
+	return pos;
+}
+
 void reverse_path(int* solution, int start, int end) {
 	int prev = start;
     int node = solution[start];
@@ -430,11 +439,23 @@ void print_instance(instance* inst) {
 
 void print_help(){
 	printf("AVAILABLE PARAMETERS TO MODIFY:\n");
-	printf("-file <file's path>       Path of the file to solve the problem\n");
-	printf("-solver <solver name>	  Selected solver for the problem\n");
+	printf("-file <filepath>       Path of the file to solve the problem\n");
+	printf("-solver <solver>	  Selected solver for the problem\n");
     printf("-time_limit <time>        The time limit in seconds\n");
 	printf("-seed <seed>              The seed for random number generation\n");
-	printf("-verbose <level>          It displays detailed processing information on the screen\n");
+	printf("-verbose <level>          It displays detailed processing information on the screen\n\n");
+
+	printf("AVAILABLE SOLVERS:\n");
+	printf("GREEDY					Greedy algorithm\n");
+	printf("GRASP					Grasp algorithm\n");
+	printf("EXTRA_MIL				Extra Mileage algorithm\n");
+	printf("GREEDY_ITER				Greedy iterative algorithm\n");
+	printf("GRASP_ITER				Grasp iterative algorithm\n");
+	printf("GREEDY_2OPT				Greedy and 2-opt algorithm\n");
+	printf("GRASP_2OPT				Grasp and 2-opt algorithm\n");
+	printf("EXTRA_MIL_2OPT				Extra Mileage and 2-opt algorithm\n");
+	printf("TABU_SEARCH				Tabu Search algorithm\n");
+	printf("VNS					Variable Neighbor Search algorithm\n");
 }
 
 void debug_plot(instance* inst, int* input_solution) {

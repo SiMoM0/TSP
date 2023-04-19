@@ -25,3 +25,12 @@ void solve_heuristic(instance* inst);
  * @param inst model instance
 */
 void solve_cplex(instance* inst);
+
+/**
+ * Build instance model in CPLEX
+ * 
+ * @param inst model instance
+ * @param env cplex environment pointer
+ * @param lp cplex lp pointer
+*/
+void build_model(instance* isnt, CPXENVptr env, CPXLPptr lp);

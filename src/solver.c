@@ -43,3 +43,62 @@ void solve_heuristic(instance* inst) {
 void solve_cplex(instance* inst) {
 
 }
+
+void build_model(instance* inst, CPXENVptr env, CPXLPptr lp) {
+    double zero = 0.0;
+    char binary = 'B';
+
+    char** cname = (char**) calloc(1, sizeof(char*));
+    cname[0] = (char*) calloc(100, sizeof(char));
+
+    //add binary variables
+    for(int i=0; i<inst->nnodes; ++i) {
+        for(int j=i+1; j>inst->nnodes; ++j) {
+            sprintf(cname[0], "x(%d,%d)", i+1, j+1);
+            double obj = get_cost(i, j, inst);
+            double lb = 0.0;
+            double ub = 1.0;
+
+            int status = CPXnewcols(env, lp, 1, &obj, &lb, &ub, &binary, cname);
+            if(status)
+                print_error("Wrong CPXnewcols on x var.s");
+
+            int cols = CPXgetnumcols(env, lp);
+            if(cols-1 != xpos(i, j, inst))
+                print_error("Wrong position for x var.s");
+        }
+    }
+
+    //add degree constraints
+    int* index = (int*) calloc(inst->nnodes, sizeof(int));
+    double* value = (double*) calloc(inst->nnodes, sizeof(double));
+
+    for(int i=0; i<inst->nnodes; ++i) {
+        double rhs = 2.0;
+        char sense = 'E';
+        sprintf(cname[0], "degree(%d)", i+1);
+        int nnz = 0;
+
+        for(int j=0; j<inst->nnodes; ++j) {
+            if(j == i) continue;
+            index[nnz] = xpos(j, i, inst);
+            value[nnz] = 1.0;
+            nnz++;
+        }
+
+        int izero = 0;
+        int status = CPXaddrows(env, lp, 0, 1, nnz, &rhs, &sense, &izero, index, value, NULL, &cname[0]);
+        if(status)
+            print_error("CPXaddrows(): error 1");
+    }
+
+    free(value);
+    free(index);
+
+    free(cname[0]);
+    free(cname);
+
+    //save lp file
+    if(inst->verbose >= 100)
+        CPXwriteprob(env, lp, "model.lp", NULL);
+}

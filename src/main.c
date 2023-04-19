@@ -1,8 +1,6 @@
 // MAIN FILE
 
 #include "utils.h"
-#include "heuristics.h"
-#include "metaheuristics.h"
 #include "solver.h"
 #include "plot.h"
 
