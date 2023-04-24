@@ -295,7 +295,7 @@ double get_cost(int i, int j, instance* inst) {
 int xpos(int i, int j, instance* inst) {
 	if(i == j)
 		print_error("i==j in xpos");
-	if(i < j)
+	if(i > j)
 		return xpos(j, i, inst);
 	int pos = i * inst->nnodes + j - ((i+1) * (i+2)) / 2;
 	return pos;
@@ -456,6 +456,7 @@ void print_help(){
 	printf("EXTRA_MIL_2OPT				Extra Mileage and 2-opt algorithm\n");
 	printf("TABU_SEARCH				Tabu Search algorithm\n");
 	printf("VNS					Variable Neighbor Search algorithm\n");
+	printf("CPLEX				Standard Cplex solver\n");
 }
 
 void debug_plot(instance* inst, int* input_solution) {

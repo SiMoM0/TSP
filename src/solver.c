@@ -35,13 +35,15 @@ void solve_heuristic(instance* inst) {
     } else if(strcmp(inst->solver, "VNS") == 0) {
         greedy_iterative(inst);
         vns(inst);
+    } else if(strcmp(inst->solver, "CPLEX") == 0) {
+        solve_cplex(inst);
     } else {
         print_error("Invalid solver selected");
     }
 }
 
 void solve_cplex(instance* inst) {
-
+    TSPopt(inst);
 }
 
 void build_model(instance* inst, CPXENVptr env, CPXLPptr lp) {
@@ -53,7 +55,7 @@ void build_model(instance* inst, CPXENVptr env, CPXLPptr lp) {
 
     //add binary variables
     for(int i=0; i<inst->nnodes; ++i) {
-        for(int j=i+1; j>inst->nnodes; ++j) {
+        for(int j=i+1; j<inst->nnodes; ++j) {
             sprintf(cname[0], "x(%d,%d)", i+1, j+1);
             double obj = get_cost(i, j, inst);
             double lb = 0.0;
@@ -101,4 +103,73 @@ void build_model(instance* inst, CPXENVptr env, CPXLPptr lp) {
     //save lp file
     if(inst->verbose >= 100)
         CPXwriteprob(env, lp, "model.lp", NULL);
+}
+
+int TSPopt(instance* inst) {
+    int error;
+    //open CPLEX model
+    CPXENVptr env = CPXopenCPLEX(&error);
+    if(error)
+        print_error("CPXopenCPLEX() error");
+    CPXLPptr lp = CPXcreateprob(env, &error, "TSP model version 1");
+    if(error)
+        print_error("CPXcreateprob() error");
+
+    build_model(inst, env, lp);
+
+    //set CPLEX parameters
+    CPXsetintparam(env, CPX_PARAM_RANDOMSEED, 123456);
+    CPXsetdblparam(env, CPX_PARAM_TILIM, inst->timelimit);
+    //CPLEX output
+    CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_OFF);
+    if(inst->verbose >= 10)
+        CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON);
+
+    error = CPXmipopt(env, lp);
+    if(error) {
+        printf("CPX error code %d\n", error);
+        print_error("CPXmipopt() error");
+    }
+
+    //use optimal solution found by CPLEX
+    int ncols = CPXgetnumcols(env, lp);
+    double* xstar = (double*) calloc(ncols, sizeof(double));
+    
+    //empty solution vector
+    int* solution = (int*) calloc(inst->nnodes, sizeof(int));
+    for(int i=0; i<inst->nnodes; ++i)
+        solution[i] = -1;
+
+    if(CPXgetx(env, lp, xstar, 0, ncols-1))
+        print_error("CPXgetx() error");
+
+    for(int i=0; i<inst->nnodes; ++i) {
+        for(int j=i+1; j<inst->nnodes; ++j) {
+            if(xstar[xpos(i, j, inst)] > 0.5) {
+                printf("... x(%3d,%3d) = 1\n", i+1, j+1);
+
+                /*TODO: add to solution vector
+                if(solution[i] == -1) {
+                    solution[i] = j;
+                } else if(solution[i] != -1 && solution[j] == -1) {
+                    solution[j] = i;
+                } else {
+                    solution[solution[j]] = j;
+                    solution[j] = i;
+                }*/
+            }
+        }
+    }
+
+    //check_solution(solution, inst->nnodes);
+    memcpy(inst->best_sol, solution, inst->nnodes*sizeof(int));
+
+    free(solution);
+    free(xstar);
+
+    //free and close cplex model
+    CPXfreeprob(env, &lp);
+    CPXcloseCPLEX(&env);
+
+    return 0;
 }
