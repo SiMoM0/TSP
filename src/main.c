@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "solver.h"
 #include "plot.h"
+#include "tspCplex.h"
 
 int main(int argc, char** argv) {
     instance inst;
@@ -13,8 +14,8 @@ int main(int argc, char** argv) {
 
     compute_distances(&inst);
 
-    solve_instance(&inst);
-
+    solve(&inst);
+   
     plot_solution(&inst);
 
     free_instance(&inst);

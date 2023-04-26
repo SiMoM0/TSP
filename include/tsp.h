@@ -43,7 +43,8 @@ typedef struct instance {
     edge_weight_type edge_weight_type;
 
     char solver[100];
-
+    int cplex; //if cplex = 1, use cplex.
+    
     //solution
     double zbest;
     int* best_sol;

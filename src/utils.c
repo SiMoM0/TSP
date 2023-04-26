@@ -193,6 +193,9 @@ void parse_command_line(int argc, char** argv, instance *inst) {
 	inst->nnodes = 0;
 	inst->zbest = -1;
 
+	//cplex init = 0 -> not use cplex
+	inst->cplex = 0;
+
 	// flag for help command
     int help = 0;
 
@@ -201,7 +204,12 @@ void parse_command_line(int argc, char** argv, instance *inst) {
 		if(strcmp(argv[i],"-file") == 0) {strcpy(inst->input_file,argv[++i]); continue;} 			// input file
 		if(strcmp(argv[i],"-input") == 0) {strcpy(inst->input_file,argv[++i]); continue;} 			// input file
 		if(strcmp(argv[i],"-f") == 0) {strcpy(inst->input_file,argv[++i]); continue;} 				// input file
-		if(strcmp(argv[i], "-solver") == 0) {strcpy(inst->solver, argv[++i]); continue;}				// solver
+		if(strcmp(argv[i], "-solver") == 0) {
+			strcpy(inst->solver, argv[++i]); 
+			if(strcmp(inst->solver, "BENDERS") == 0) 
+				inst->cplex = 1; 
+			continue;
+		}				// solver
 		if(strcmp(argv[i],"-time_limit") == 0) {inst->timelimit = atof(argv[++i]); continue;}		// total time limit
 		if(strcmp(argv[i],"-seed") == 0) {inst->randomseed = abs(atoi(argv[++i])); continue;} 		// random seed
         if(strcmp(argv[i], "-verbose") == 0) {inst->verbose = atoi(argv[++i]); continue;}			// verbose parameter
@@ -295,7 +303,7 @@ double get_cost(int i, int j, instance* inst) {
 int xpos(int i, int j, instance* inst) {
 	if(i == j)
 		print_error("i==j in xpos");
-	if(i < j)
+	if(i > j)
 		return xpos(j, i, inst);
 	int pos = i * inst->nnodes + j - ((i+1) * (i+2)) / 2;
 	return pos;
@@ -456,6 +464,8 @@ void print_help(){
 	printf("EXTRA_MIL_2OPT				Extra Mileage and 2-opt algorithm\n");
 	printf("TABU_SEARCH				Tabu Search algorithm\n");
 	printf("VNS					Variable Neighbor Search algorithm\n");
+	printf("BENDERS					Benders' loop\n");
+
 }
 
 void debug_plot(instance* inst, int* input_solution) {
@@ -483,4 +493,11 @@ void progressbar(int progress, int total) {
 
 	//clear current line
 	printf("\033[2K");
+}
+
+double get_elapsed_time(struct timeval start, struct timeval end) {
+    long seconds = end.tv_sec - start.tv_sec;
+    long microseconds = end.tv_usec - start.tv_usec;
+    double elapsed = seconds + microseconds * 1e-6;
+    return elapsed;
 }
