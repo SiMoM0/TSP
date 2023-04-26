@@ -121,30 +121,20 @@ void set_params(instance* inst, CPXENVptr env){
 }
 int TSPopt(instance *inst){
     int error;
-    //debug
-    printf("sto aprendo cplex\n");
-    getchar();
-
+    
     //open cplex model
     CPXENVptr env = CPXopenCPLEX(&error);       // generate new environment, in err will be saved errors
     if(error) print_error("CPXopenCPLEX() error\n");
     CPXLPptr lp = CPXcreateprob(env, &error, "TSP model version 1");   // create new empty linear programming problem (no variables, no constraints ...)
     if(error) print_error("CPXcreateprob() error\n");
 
-    printf("ho aperto cplex\n");
-    getchar();
     // Build the model (build the cplex model)
     build_model(inst, env, lp);
-
-    //debug
-    printf("ho fatto la build del model\n");
-    getchar();
 
     //cplex's parameters setting
     set_params(inst, env);
     //debug
-    printf("ho fatto set_params\n");
-    getchar();
+    
 
     //Start counting time
     struct timeval start, end;
