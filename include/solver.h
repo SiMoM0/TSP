@@ -5,7 +5,6 @@
 #include "utils.h"
 #include "heuristics.h"
 #include "metaheuristics.h"
-#include "tspCplex.h"
 #include "benders.h"
 
 
@@ -26,4 +25,21 @@ int solve_problem(CPXENVptr env, CPXLPptr lp, instance *inst);
 */
 void solve_heuristic(instance* inst);
 
+/**
+ * Build instance model in CPLEX
+ * 
+ * @param inst model instance
+ * @param env cplex environmental parameters
+ * @param lp cplex lp data
+*/
+void build_model(instance* isnt, CPXENVptr env, CPXLPptr lp);
 
+/**
+ * Optimize TSP instance using cplex
+ * 
+ * @param inst model instance
+*/
+int TSPopt(instance* inst);
+
+void build_sol(const double *xstar, instance *inst, int * succ, int* comp, int* ncomp);
+void set_params(instance* inst, CPXENVptr env);

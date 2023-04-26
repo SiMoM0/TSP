@@ -1,7 +1,7 @@
 #pragma once
 
 #include "utils.h"
-#include "tspCplex.h"
+#include "solver.h"
 #include <sys/time.h>
 #include "plot.h"
 #include <cplex.h>

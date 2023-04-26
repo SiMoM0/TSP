@@ -3,7 +3,6 @@
 #include "utils.h"
 #include "solver.h"
 #include "plot.h"
-#include "tspCplex.h"
 
 int main(int argc, char** argv) {
     instance inst;
