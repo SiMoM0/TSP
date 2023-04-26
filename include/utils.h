@@ -228,5 +228,3 @@ void debug_plot(instance* inst, int* input_solution);
  * @param total total value
 */
 void progressbar(int progress, int total);
-
-double get_elapsed_time(struct timeval start, struct timeval end);

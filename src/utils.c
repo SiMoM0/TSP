@@ -494,10 +494,3 @@ void progressbar(int progress, int total) {
 	//clear current line
 	printf("\033[2K");
 }
-
-double get_elapsed_time(struct timeval start, struct timeval end) {
-    long seconds = end.tv_sec - start.tv_sec;
-    long microseconds = end.tv_usec - start.tv_usec;
-    double elapsed = seconds + microseconds * 1e-6;
-    return elapsed;
-}

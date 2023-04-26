@@ -1,25 +1,31 @@
 #include "solver.h"
 
-//TO DO change the function type (return an int: 0=success, 1=fail)
 void solve(instance* inst){
-    if (inst->cplex == 1) {     // Solve using cplex
+    if(inst->cplex == 1) {
         int error = TSPopt(inst);
-        if(error) print_error("EXECUTION OF TSPopt FAILED\n");
-    } else {                                // Solve using our heuristic methods
+        if(error) print_error("Execution of TSPopt FAILED");
+    } else {
         solve_heuristic(inst);
     }
-     
+
+    if(inst->verbose >= 1)
+        printf("Solution value = %f\n", inst->zbest);
 }
 
 int solve_problem(CPXENVptr env, CPXLPptr lp, instance *inst) {
     int status;
+
     if(strncmp(inst->solver, "BENDERS", 7) == 0) {
-        status = Benders(inst, env, lp);
-        if(status)
-            print_error("FAILED IN SOLVING BENDERS\n");
-        else if(status == 2)
-            print_error("TIME OUT\n");
+        status = benders(inst, env, lp);
+    } else {
+        print_error("Invalid solver selected");
     }
+
+    if(status)
+        print_error("Execution FAILED");
+    else if(status == 2)
+        print_error("Time out during execution");
+    //TODO if we put this if/else block, it is useless to return the status since the program will halt
     return status;
 }
 
@@ -109,58 +115,48 @@ void build_model(instance* inst, CPXENVptr env, CPXLPptr lp) {
 
     //save lp file
     if(inst->verbose >= 100)
-        CPXwriteprob(env, lp, "model.lp", NULL);
+        CPXwriteprob(env, lp, "../data/model.lp", NULL);
 }
 
 int TSPopt(instance *inst){
     int error;
-    
     //open cplex model
-    CPXENVptr env = CPXopenCPLEX(&error);       // generate new environment, in err will be saved errors
-    if(error) print_error("CPXopenCPLEX() error\n");
-    CPXLPptr lp = CPXcreateprob(env, &error, "TSP model version 1");   // create new empty linear programming problem (no variables, no constraints ...)
-    if(error) print_error("CPXcreateprob() error\n");
+    CPXENVptr env = CPXopenCPLEX(&error);
+    if(error) print_error("CPXopenCPLEX() error");
+    CPXLPptr lp = CPXcreateprob(env, &error, "TSP model version 1");
+    if(error) print_error("CPXcreateprob() error");
 
-    // Build the model (build the cplex model)
     build_model(inst, env, lp);
 
-    //cplex's parameters setting
     set_params(inst, env);
-    //debug
     
+    //track execution time
+    time_t start, end;
+    time(&start);
 
-    //Start counting time
-    struct timeval start, end;
-    gettimeofday(&start, 0);
-
-
-    //Optimize the model (the solution is stored inside the env variable)
-    printf("i am solving the problem:\n");
     int status = solve_problem(env, lp, inst);
     if(status){
-        print_error("UNABLE TO RESOLVE THE PROBLEM\n");
+        print_error("Unable to solve the problem");
     }
 
-    //Compute elapsed time
-    gettimeofday(&end, 0);
-    double elapsed = get_elapsed_time(start, end);
 
+
+    time(&end);
+    double elapsed = difftime(end, start);
+    
     //Free the problem and close cplex environment
     CPXfreeprob(env, &lp);
     CPXcloseCPLEX(&env);
     return error;
 }
 
-//Build_sol transforms an integer sol of the model (given in cplex format) to an arry of succ and an array of connected components
 void build_sol(const double *xstar, instance *inst, int * succ, int* comp, int* ncomp){
-    
     //initialiazation of succ, comp and ncomp
     *ncomp = 0;
 	for (int i = 0; i < inst->nnodes; i++){
 		succ[i] = -1;
 		comp[i] = -1;
 	}
-
 
 	for (int start = 0; start < inst->nnodes; start++){
 		if (comp[start] >= 0)
@@ -184,26 +180,21 @@ void build_sol(const double *xstar, instance *inst, int * succ, int* comp, int* 
 		succ[i] = start; // last arc to close the cycle
 						 // go to the next component...
 	}
-
-
-    
 }
 
 void set_params(instance* inst, CPXENVptr env){
-    //TO DO
+    // Cplex output on screen
     CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_OFF);
+	if (inst->verbose >= 10) CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON);
 
-	if (inst->verbose >= 10) CPXsetintparam(env, CPX_PARAM_SCRIND, CPX_ON); // Cplex output on screen
-
-
-    if (inst->timelimit > 0) { // Time limits <= 0 not allowed
-        CPXsetdblparam(env, CPXPARAM_TimeLimit, inst->timelimit);
-    }
-    if (inst->randomseed >= 0) {
+    if (inst->timelimit > 0) // Time limits <= 0 not allowed
+        CPXsetdblparam(env, CPX_PARAM_TILIM, inst->timelimit);
+    
+    if (inst->randomseed >= 0)
         CPXsetintparam(env, CPX_PARAM_RANDOMSEED, inst->randomseed);
-    }
-    /*if (params.num_threads > 0) {
-        CPXsetintparam(env, CPXPARAM_Threads, params.num_threads);
+    
+    /*if (inst->num_threads > 0) {
+        CPXsetintparam(env, CPXPARAM_Threads, inst->num_threads);
     }*/
 
     // Cplex precision
