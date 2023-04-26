@@ -1,100 +1,6 @@
 #include "benders.h"
 
 
-/*int add_sec_videolezione_sbagliato(instance *inst, CPXENVptr env, CPXLPptr lp){
-    int error;
-    int ncols = CPXgetnumcols(env, lp);
-    int ncomp = 0; //number of connected components
-
-    int n_sec = 0;
-    
-    // keep track of the time
-    time_t start_time = time(NULL);
-    while (ncomp != 1 || difftime(time(NULL), start_time) < 100)
-    {
-        error = CPXmipopt(env, lp);
-        if (error)
-            print_error("CPXmipopt() error");
-        ncols = CPXgetnumcols(env, lp);
-        
-        //allocating memory
-        double *xstar = (double *)calloc(ncols, sizeof(double));
-        error = CPXgetx(env, lp, xstar, 0, ncols - 1);
-        if (error)
-            print_error("CPXgetx() error");
-        int *succ = (int *)malloc(sizeof(int) * inst->nnodes);
-        int *comp = (int *)malloc(sizeof(int) * inst->nnodes);
-
-        build_sol(xstar, inst, succ, comp, &ncomp);
-
-        if (ncomp == 1) break; //there is only one cycle
-        
-        //cc stands for connected components
-        for (int cc = 1; cc <= ncomp; cc++)
-        {
-            char **cname = (char **)calloc(1, sizeof(char *));
-            cname[0] = (char *)calloc(256, sizeof(char));
-            sprintf(cname[0], "sec(%d)", n_sec);
-            
-            int nncc = 0; //number of connected components
-            for (int i = 0; i < inst->nnodes; i++)
-            {
-                if (comp[i] == cc)
-                    nncc++;
-            }
-
-            //TO DO forse l'allocazione di index e value va fuori dal for
-            int *index = (int *)calloc((inst->nnodes * (inst->nnodes - 1)) / 2, sizeof(int));
-            double *value = (double *)calloc((inst->nnodes * (inst->nnodes - 1)) / 2, sizeof(double));
-            char sense = 'L'; // 'L' for less than or equal to constraint
-            int nnz = 0;
-            int izero = 0;
-            double rsh = nncc - 1; //NON NE SONO SICURA
-
-
-            int j = 0;
-            int k;
-            while (j < inst->nnodes - 1)
-            {
-                while (comp[j] != cc && j < inst->nnodes)
-                {
-                    j++;
-                }
-                k = j + 1;
-                while (k < inst->nnodes)
-                {
-                    if (comp[k] == cc)
-                    {
-                        index[nnz] = xpos(j, k, inst);
-                        value[nnz] = 1.0;
-                        nnz++;
-                    }
-                    k++;
-                }
-                j++;
-            }
-
-            
-            if (CPXaddrows(env, lp, 0, 1, nnz, &rsh, &sense, &izero, index, value, NULL, &cname))
-                print_error("CPXaddrows(): error 1");
-
-            free(cname[0]);
-            free(cname);
-            free(index);
-            free(value);
-            CPXwriteprob(env, lp, "mipopt.lp", NULL);
-        }
-        build_sol(xstar, inst, succ, comp, &ncomp);
-        free(xstar);
-        free(succ);
-        free(comp);
-    }
-    if(ncomp == 1)
-        return 1; //single cycle
-    else
-        return 0;
-} 
-*/
 int add_sec(instance *inst, CPXENVptr env, CPXLPptr lp, int ncomp, int *comp, int ncols, int it){
     int* index = (int*)malloc(ncols * sizeof(int));
 	double* value = (double*)malloc(ncols * sizeof(double));
@@ -183,11 +89,8 @@ int Benders(instance* inst, CPXENVptr env, CPXLPptr lp){
         if (timelimit > 0 && elapsed > timelimit) {
             free(succ);
             free(comp);
-            //return CPX_STAT_ABORT_TIME_LIM;
-
-            //TO FIX
-            printf("\n\n\n\n\ntempo scaduto\n\n\n\n");
-            return 0;
+            //printf("\n\n\n\n\ntempo scaduto\n\n\n\n");
+            return 2;
         }
 
     
@@ -215,9 +118,7 @@ int Benders(instance* inst, CPXENVptr env, CPXLPptr lp){
 			if (inst->zbest != -1) {
 				printf("----- Terminated before convergence -----\n");
 				printf("BEST SOLUTION FOUND\nCOST: %f\n", inst->zbest);
-                //plot solution 
-                //DA AGGIUNGERE LA FUNZIONE
-				return 0;
+				return error;
 			}
 			else print_error("CPXgetx() error");
 		}
@@ -241,7 +142,8 @@ int Benders(instance* inst, CPXENVptr env, CPXLPptr lp){
         } 
 
 		//add subtour elimination constraints
-		add_sec(inst, env, lp, ncomp, comp, ncols, it);
+		error = add_sec(inst, env, lp, ncomp, comp, ncols, it);
+        if(error) print_error("FAILED IN ADDING SUBTOUR ELIMINATION CONSTRAINTS\n");
         
 		//repair current solution
 		//if(refinement(inst, succ, comp, ncomp, it)) return 1;
@@ -250,17 +152,17 @@ int Benders(instance* inst, CPXENVptr env, CPXLPptr lp){
 
 	} while (1);
 
-    //while (ncomp>1);
-
     double z;
     error = CPXgetobjval(env, lp, &z);
     if(error)
-        printf("CPXgetobjval() error\n");
+        print_error("CPXgetobjval() error\n");
 
-    update_solution(z, succ, inst);
+    if(z<inst->zbest || inst->zbest == -1)
+        update_solution(z, succ, inst);
 
 	free(succ);
 	free(comp);
     free(xstar);
-	return 0;
+
+	return error;
 }

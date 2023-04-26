@@ -1,8 +1,10 @@
 #include "solver.h"
 
+//TO DO change the function type (return an int: 0=success, 1=fail)
 void solve(instance* inst){
     if (inst->cplex == 1) {     // Solve using cplex
-        TSPopt(inst);
+        int error = TSPopt(inst);
+        if(error) print_error("EXECUTION OF TSPopt FAILED\n");
     } else {                                // Solve using our heuristic methods
         solve_heuristic(inst);
     }
@@ -13,7 +15,10 @@ int solve_problem(CPXENVptr env, CPXLPptr lp, instance *inst) {
     int status;
     if(strncmp(inst->solver, "BENDERS", 7) == 0) {
         status = Benders(inst, env, lp);
-        
+        if(status)
+            print_error("FAILED IN SOLVING BENDERS\n");
+        else if(status == 2)
+            print_error("TIME OUT\n");
     }
     return status;
 }

@@ -144,6 +144,9 @@ int TSPopt(instance *inst){
     //Optimize the model (the solution is stored inside the env variable)
     printf("i am solving the problem:\n");
     int status = solve_problem(env, lp, inst);
+    if(status){
+        print_error("UNABLE TO RESOLVE THE PROBLEM\n");
+    }
 
     //Compute elapsed time
     gettimeofday(&end, 0);
