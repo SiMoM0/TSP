@@ -44,6 +44,7 @@ typedef struct instance {
 
     char solver[100];
     int cplex; //if cplex = 1, use cplex.
+    int ncols;
     
     //solution
     double zbest;

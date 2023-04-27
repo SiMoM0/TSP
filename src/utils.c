@@ -206,7 +206,7 @@ void parse_command_line(int argc, char** argv, instance *inst) {
 		if(strcmp(argv[i],"-f") == 0) {strcpy(inst->input_file,argv[++i]); continue;} 				// input file
 		if(strcmp(argv[i], "-solver") == 0) {
 			strcpy(inst->solver, argv[++i]); 
-			if(strcmp(inst->solver, "BENDERS") == 0) 
+			if(strcmp(inst->solver, "BENDERS") == 0 || strcmp(inst->solver, "CALLBACK") == 0) 
 				inst->cplex = 1; 
 			continue;
 		}				// solver

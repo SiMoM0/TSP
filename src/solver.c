@@ -17,6 +17,8 @@ int solve_problem(CPXENVptr env, CPXLPptr lp, instance *inst) {
 
     if(strncmp(inst->solver, "BENDERS", 7) == 0) {
         status = benders(inst, env, lp);
+    } else if(strncmp(inst->solver, "CALLBACK", 8) == 0) {
+        status = branch_and_cut(inst, env, lp);
     } else {
         print_error("Invalid solver selected");
     }
@@ -84,6 +86,8 @@ void build_model(instance* inst, CPXENVptr env, CPXLPptr lp) {
         }
     }
 
+    inst->ncols = CPXgetnumcols(env, lp);
+
     //add degree constraints
     int* index = (int*) calloc(inst->nnodes, sizeof(int));
     double* value = (double*) calloc(inst->nnodes, sizeof(double));
@@ -138,8 +142,6 @@ int TSPopt(instance *inst){
     if(status){
         print_error("Unable to solve the problem");
     }
-
-
 
     time(&end);
     double elapsed = difftime(end, start);

@@ -18,7 +18,7 @@ set(CPLEX_LIB ${CPLEX_PATH}/lib/x86-64_linux/static_pic)
 #SET (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -ldl")
 
 # Add an executable
-add_executable(main src/main.c src/utils.c src/heuristics.c src/metaheuristics.c src/plot.c src/solver.c src/benders.c)
+add_executable(main src/main.c src/utils.c src/heuristics.c src/metaheuristics.c src/plot.c src/solver.c src/benders.c src/callbacks.c)
 #add_executable(${PROJECT_NAME} ${tsp_SRC})
 
 # CPLEX
