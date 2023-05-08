@@ -94,10 +94,6 @@ double patching_heuristic(instance* inst, int* succ, int* comp, int* ncomp){
 }
 
 int benders(instance* inst, CPXENVptr env, CPXLPptr lp){
-	//to check
-	compute_distances(inst);
-
-
     int error;
 
     int ncols = CPXgetnumcols(env, lp);
