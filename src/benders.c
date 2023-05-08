@@ -50,7 +50,6 @@ int add_sec(instance *inst, CPXENVptr env, CPXLPptr lp, int ncomp, int *comp, in
 
 
 double patching_heuristic(instance* inst, int* succ, int* comp, int* ncomp){
-	compute_distances(inst);
 
 	while(*ncomp > 1){
 		double min_z = INFINITY;
@@ -95,6 +94,10 @@ double patching_heuristic(instance* inst, int* succ, int* comp, int* ncomp){
 }
 
 int benders(instance* inst, CPXENVptr env, CPXLPptr lp){
+	//to check
+	compute_distances(inst);
+
+
     int error;
 
     int ncols = CPXgetnumcols(env, lp);
@@ -109,7 +112,7 @@ int benders(instance* inst, CPXENVptr env, CPXLPptr lp){
 	int it = 0;
 	double z;
 	//lower and upper bound
-	double lb = CPX_INFBOUND; //not thread safe
+	double lb = -INFINITY;//CPX_INFBOUND; //not thread safe
 	double ub = INFINITY;
 
     //track execution time
@@ -117,7 +120,7 @@ int benders(instance* inst, CPXENVptr env, CPXLPptr lp){
     time(&start);
 
 	while(lb < 0.9999 * ub) {
-		int ncomp = 1;
+		int ncomp = 0;
 
 		//If we exceeded the time limit: stop
         time(&end);
@@ -125,7 +128,8 @@ int benders(instance* inst, CPXENVptr env, CPXLPptr lp){
         if(elapsed > inst->timelimit) {
             free(succ);
             free(comp);
-            return 2;
+			free(xstar);
+			return 2;
         }
 
         // apply to cplex the residual time left to solve the problem
@@ -151,35 +155,28 @@ int benders(instance* inst, CPXENVptr env, CPXLPptr lp){
 			print_error("CPXgetx() error");
 		build_sol(xstar, inst, succ, comp, &ncomp);
 
-		//if(inst->verbose >= 50) printf("Current number of components = %d\n", ncomp);
-
-		if(ncomp == 1){
-            break;
-        } 
-
-		//add subtour elimination constraints
-		error = add_sec(inst, env, lp, ncomp, comp, ncols, it);
-        if(error) print_error("Failed in adding SEC");
+		if(ncomp > 1){
+        	//add subtour elimination constraints
+			error = add_sec(inst, env, lp, ncomp, comp, ncols, it);
+        	if(error) print_error("Failed in adding SEC");
 
 		        
-		//patching heuristic
-		double cost = patching_heuristic(inst, succ, comp, &ncomp);
-		if(update_solution(cost, succ, inst) && inst->verbose >= 50){
-			printf("Using Patching Heuristic. Best solution updated: %f\n\n\n", cost);
-			
-		}
+			//patching heuristic
+			double cost = patching_heuristic(inst, succ, comp, &ncomp);
+			if(update_solution(cost, succ, inst) && inst->verbose >= 50){
+				printf("Using Patching Heuristic. Best solution updated: %f\n\n\n", cost);
+			}
+
+        } else {
+			update_solution(z, succ, inst);
+		}		
+
+		ub = inst->zbest;
 			
 		it++;
 	}
 
-    
-    error = CPXgetobjval(env, lp, &z);
-    if(error)
-        print_error("CPXgetobjval() error\n");
-
-    update_solution(z, succ, inst);
-
-	free(succ);
+    free(succ);
 	free(comp);
     free(xstar);
 
