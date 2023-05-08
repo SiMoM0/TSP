@@ -166,8 +166,9 @@ void reverse_path(int* solution, int start, int end);
  * @param z solution cost
  * @param solution candidate solution
  * @param inst model instance
+ * @return 1 if the solution is updated, 0 otherwise
 */
-void update_solution(double z, int* solution, instance* inst);
+int update_solution(double z, int* solution, instance* inst);
 
 /**
  * Check if the input solution is a valid solution for the tsp.

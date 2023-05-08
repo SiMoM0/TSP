@@ -49,6 +49,51 @@ int add_sec(instance *inst, CPXENVptr env, CPXLPptr lp, int ncomp, int *comp, in
 }
 
 
+double patching_heuristic(instance* inst, int* succ, int* comp, int* ncomp){
+	compute_distances(inst);
+
+	while(*ncomp > 1){
+		double min_z = INFINITY;
+		int a = -1;
+		int b = -1;
+
+		//find the best delta_cost
+		for(int i=0; i<inst->nnodes; i++){
+			for(int j=0; j<inst->nnodes; j++){
+				if(comp[i] < comp[j]){
+					double new_z = get_cost(i, succ[j], inst);
+					double actual_z = get_cost(j, succ[i], inst);
+					if(new_z-actual_z < min_z){
+						min_z = new_z-actual_z;
+						a = i;
+						b = j;
+					}
+				}
+			}
+		}
+
+		//update the comp array
+		int node = succ[b];
+		int comp_a = comp[a];
+		while(node != b){
+			comp[node] = comp_a;
+			node = succ[node];
+		}
+		comp[b] = comp_a;
+		*ncomp = (*ncomp)-1;
+
+		//update the successors array
+		int a_first = succ[a];
+		succ[a] = succ[b];
+		succ[b] = a_first;
+		
+	}
+	//we apply 2-opt in any case (also if we have 1 component)
+	double cost = alg_2opt(inst, succ);
+
+	return cost;
+}
+
 int benders(instance* inst, CPXENVptr env, CPXLPptr lp){
     int error;
 
@@ -62,12 +107,16 @@ int benders(instance* inst, CPXENVptr env, CPXLPptr lp){
 	int* comp = (int*) calloc(inst->nnodes, sizeof(int));
 
 	int it = 0;
+	double z;
+	//lower and upper bound
+	double lb = CPX_INFBOUND; //not thread safe
+	double ub = INFINITY;
 
     //track execution time
     time_t start, end;
     time(&start);
 
-	while(1) {
+	while(lb < 0.9999 * ub) {
 		int ncomp = 1;
 
 		//If we exceeded the time limit: stop
@@ -92,30 +141,17 @@ int benders(instance* inst, CPXENVptr env, CPXLPptr lp){
 			print_error("CPXmipopt() error");
 		}
 
+		//update the lower bound
+		if(CPXgetobjval(env, lp, &z)) print_error("CPXgetobjval() error\n");
+		lb = (z > lb) ? z : lb;
 
-		// use the optimal solution found by CPLEX and prints it
+		//build the solution 
         error = CPXgetx(env, lp, xstar, 0, ncols - 1);
-		if(error) {
-			if (inst->zbest != -1) {
-				printf("----- Terminated before convergence -----\n");
-				printf("BEST SOLUTION FOUND\nCOST: %f\n", inst->zbest);
-				return error;
-			} else {
-				print_error("CPXgetx() error");
-			}
-		}
-
-		for (int i = 0; i < inst->nnodes; i++) {
-			for (int j = i + 1; j < inst->nnodes; j++) {
-				if(xstar[xpos(i, j, inst)] > 0.5)
-					printf("  ... x(%3d,%3d) = 1\n", i + 1, j + 1);
-			}
-		}
-
+		if(error)
+			print_error("CPXgetx() error");
 		build_sol(xstar, inst, succ, comp, &ncomp);
 
-		if(inst->verbose >= 50)
-			printf("Current number of components = %d\n", ncomp);
+		//if(inst->verbose >= 50) printf("Current number of components = %d\n", ncomp);
 
 		if(ncomp == 1){
             break;
@@ -123,15 +159,20 @@ int benders(instance* inst, CPXENVptr env, CPXLPptr lp){
 
 		//add subtour elimination constraints
 		error = add_sec(inst, env, lp, ncomp, comp, ncols, it);
-        if(error) print_error("FAILED in adding SEC");
-        
-		//repair current solution
-		//if(refinement(inst, succ, comp, ncomp, it)) return 1;
+        if(error) print_error("Failed in adding SEC");
 
+		        
+		//patching heuristic
+		double cost = patching_heuristic(inst, succ, comp, &ncomp);
+		if(update_solution(cost, succ, inst) && inst->verbose >= 50){
+			printf("Using Patching Heuristic. Best solution updated: %f\n\n\n", cost);
+			
+		}
+			
 		it++;
 	}
 
-    double z;
+    
     error = CPXgetobjval(env, lp, &z);
     if(error)
         print_error("CPXgetobjval() error\n");
