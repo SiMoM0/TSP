@@ -17,8 +17,10 @@ int solve_problem(CPXENVptr env, CPXLPptr lp, instance *inst) {
 
     if(strncmp(inst->solver, "BENDERS", 7) == 0) {
         status = benders(inst, env, lp);
-    } else if(strncmp(inst->solver, "CALLBACK", 8) == 0) {
-        status = branch_and_cut(inst, env, lp);
+    } else if(strncmp(inst->solver, "BRANCH_CUT", 10) == 0) {
+        status = branch_and_cut(inst, env, lp, CPX_CALLBACKCONTEXT_CANDIDATE);
+    } else if(strncmp(inst->solver, "BRANCH_CUT_RLX", 14) == 0) {
+        status = branch_and_cut(inst, env, lp, CPX_CALLBACKCONTEXT_RELAXATION);
     } else {
         print_error("Invalid solver selected");
     }

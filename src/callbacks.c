@@ -1,7 +1,19 @@
 #include "callbacks.h"
 
-int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, void* userhandle) { 
+int CPXPUBLIC sec_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, void* userhandle) { 
 	instance* inst = (instance*) userhandle;
+
+	if(contextid == CPX_CALLBACKCONTEXT_CANDIDATE) {
+		return candidate_callback(context, contextid, inst);
+	}
+	if(contextid = CPX_CALLBACKCONTEXT_RELAXATION) {
+		return relaxation_callback(context, contextid, inst);
+	}
+	
+	return 1;
+}
+
+int candidate_callback(CPXCALLBACKCONTEXTptr context, CPXLONG conxtetid, instance* inst) {
 	double* xstar = (double*) malloc(inst->ncols * sizeof(double));
 	double objval = CPX_INFBOUND;
 	if(CPXcallbackgetcandidatepoint(context, xstar, 0, inst->ncols-1, &objval))
@@ -21,7 +33,6 @@ int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, void
 
     build_sol(xstar, inst, succ, comp, &ncomp);
 
-	int nnz = 0;
 	//... if xstart is infeasible, find a violated cut and store it in the usual Cplex's data structute (rhs, sense, nnz, index and value)
 	
 	if(ncomp > 1) // means that the solution is infeasible and a violated cut has been found
@@ -55,26 +66,33 @@ int CPXPUBLIC my_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, void
     		if(CPXcallbackrejectcandidate(context, 1, nnz, &rhs, &sense, &izero, index, value))
                 print_error("CPXcallbackrejectcandidate() error"); // reject the solution and adds one cut 
             //if ( CPXcallbackrejectcandidate(context, 0, NULL, NULL, NULL, NULL, NULL, NULL) ) print_error("CPXcallbackrejectcandidate() error"); // just reject the solution without adding cuts (less effective)
-    	}		
+    	}
+
+		free(value);
+		free(index);	
 	}
 	
     free(comp);
     free(succ);
 	free(xstar); 
-	return 0; 
+	return 0;
 }
 
-int branch_and_cut(instance* inst, CPXENVptr env, CPXLPptr lp) {
+int relaxation_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, instance* inst) {
+	
+}
+
+int branch_and_cut(instance* inst, CPXENVptr env, CPXLPptr lp, CPXLONG contextid) {
     // install a "lazyconstraint" callback to cut infeasible integer sol.s (found e.g. by heuristics) 
-	CPXLONG contextid = CPX_CALLBACKCONTEXT_CANDIDATE; // ... means lazyconstraints
-	if(CPXcallbacksetfunc(env, lp, contextid, my_callback, inst))
+	//CPXLONG contextid = CPX_CALLBACKCONTEXT_CANDIDATE; // ... means lazyconstraints
+	if(CPXcallbacksetfunc(env, lp, contextid, sec_callback, inst))
         print_error("CPXcallbacksetfunc() error");
 	
 	//CPXsetintparam(env, CPX_PARAM_THREADS, 1); 	// just for debugging
 
 	CPXmipopt(env,lp); 		// with the callback installed
     
-    double* xstar = (double*) malloc(inst->ncols * sizeof(double));
+    double* xstar = (double*) calloc(inst->ncols, sizeof(double));
     CPXgetx(env, lp, xstar, 0, inst->ncols-1);
 
     int* succ = (int*) calloc(inst->nnodes, sizeof(int));
