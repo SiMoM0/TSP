@@ -6,6 +6,13 @@
 #include "solver.h"
 #include <cplex.h>
 
+// Data structure for Concorde relaxation callback function
+typedef struct {
+    CPXCALLBACKCONTEXTptr context;
+    instance *inst;
+} cc_params;
+
+
 /**
  * Standard callback
  * 
@@ -35,6 +42,17 @@ int candidate_callback(CPXCALLBACKCONTEXTptr context, CPXLONG conxtetid, instanc
  * @return status
 */
 int relaxation_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, instance* inst);
+
+/**
+ * Add relaxation cut
+ * 
+ * @param cutval value of the cut
+ * @param nnodes number of nodes in the cut
+ * @param cut vector that specify the indexes of the nodes in the cut
+ * @param params user-handle parameters
+ * @return status
+*/
+int relaxation_cut(double cutval, int cutcount, int* cut, void* params);
 
 /**
  * Perform branch & cut algorithm through callbacks

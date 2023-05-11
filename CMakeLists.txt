@@ -12,6 +12,8 @@ include_directories(include)
 # CPLEX paths
 set(CPLEX_PATH /opt/ibm/ILOG/CPLEX_Studio2211/cplex)
 set(CPLEX_LIB ${CPLEX_PATH}/lib/x86-64_linux/static_pic)
+# CONCORDE lib
+set(CONCORDELIB /opt/concorde)
 
 #PROVA PERCHè NON FUNZIONA
 #SET (CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -ldl")
@@ -23,6 +25,8 @@ add_executable(main src/main.c src/utils.c src/heuristics.c src/metaheuristics.c
 
 # CPLEX
 include_directories(${CPLEX_PATH}/include/ilcplex)
+# Concorde
+include_directories(${CONCORDELIB} ${CONCORDELIB}/INCLUDE)
 
 add_definitions(-DIL_STD)
 set (CPLEX_LINKER_FLAGS -lcplex -lm -lpthread -ldl)
@@ -33,4 +37,5 @@ target_link_libraries(main PRIVATE m)
 # CPLEX libraries
 target_link_libraries(main PRIVATE ${CPLEX_LINKER_FLAGS})
 target_link_libraries(main PRIVATE -L${CPLEX_LIB})
-#target_link_libraries(main PRIVATE ${CONCORDE_LIB})
+# Concorde
+target_link_libraries(main PRIVATE ${CONCORDELIB}/concorde.a)
