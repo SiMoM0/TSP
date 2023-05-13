@@ -39,8 +39,7 @@ int candidate_callback(CPXCALLBACKCONTEXTptr context, CPXLONG conxtetid, instanc
 
 	//... if xstart is infeasible, find a violated cut and store it in the usual Cplex's data structute (rhs, sense, nnz, index and value)
 	
-	if(ncomp > 1) // means that the solution is infeasible and a violated cut has been found
-	{
+	if(ncomp > 1) {// means that the solution is infeasible and a violated cut has been found
         int* index = (int*) calloc(inst->ncols, sizeof(int));
         double* value = (double*) calloc(inst->ncols, sizeof(double));
 		
@@ -74,6 +73,8 @@ int candidate_callback(CPXCALLBACKCONTEXTptr context, CPXLONG conxtetid, instanc
 
 		free(value);
 		free(index);	
+	} else if(ncomp == 1) {
+		//Posting heuristic
 	}
 	
     free(comp);
@@ -117,6 +118,8 @@ int relaxation_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, instan
 	if(CCcut_connect_components(inst->nnodes, ecount, elist, xstar, &ncomp, &compscount, &comps))
 		print_error("CCcut_connect_components error");
 
+	//printf("NCOMP = %d\n", ncomp);
+
 	if(ncomp == 1) {
         cc_params params;
         params.context = context;
@@ -125,6 +128,7 @@ int relaxation_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, instan
         if(CCcut_violated_cuts(inst->nnodes, ecount, elist, xstar, 2.0 - EPSILON, relaxation_cut, &params))
             print_error("CCcut_violated_cuts error");
     }
+	//TODO add usercuts anyway ?
 
 	free(elist);
 	free(compscount);
@@ -143,23 +147,24 @@ int relaxation_cut(double cutval, int nnodes, int* cut, void* params) {
 	char sense = 'L'; // <= constraint
 	double rhs = nnodes - 1;
 	int purgeable = CPX_USECUT_FILTER;
-	int izero = 0;
+	int matbeg = 0;
 	int local = 0;
 
-	int nnz = 0;
+	int k = 0;
     for (int i=0; i<nnodes; ++i) {
-        for (int j=i+1; j<nnodes; ++j) {
+        for (int j=0; j<nnodes; ++j) {
             if(cut[i] >= cut[j]) continue;
 
-            index[nnz] = xpos(cut[i], cut[j], param->inst);
-            value[nnz] = 1.0;
-			nnz++;
+            index[k] = xpos(cut[i], cut[j], param->inst);
+            value[k] = 1.0;
+			k++;
         }
     }
 
-    if (CPXcallbackaddusercuts(param->context, 1, nnz, &rhs, &sense, &izero, index, value, &purgeable, &local))
+    if (CPXcallbackaddusercuts(param->context, 1, ecount, &rhs, &sense, &matbeg, index, value, &purgeable, &local))
         print_error("Error on CPXcallbackaddusercuts()");
 
+	printf("ADDED USER CUTS\n");
 	free(value);
 	free(index);
 	return 0;
