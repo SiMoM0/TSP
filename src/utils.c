@@ -253,14 +253,14 @@ double man2d_dist(int i, int j, instance* inst) {
 	double dx = inst->points[i].x - inst->points[j].x;
 	double dy = inst->points[i].y - inst->points[j].y;
 
-	return abs(dx) + abs(dy);
+	return nint(abs(dx) + abs(dy));
 }
 
 double euc2d_dist(int i, int j, instance* inst) {
 	double dx = inst->points[i].x - inst->points[j].x;
 	double dy = inst->points[i].y - inst->points[j].y;
 
-	return sqrt(dx*dx + dy*dy);
+	return nint(sqrt(dx*dx + dy*dy));
 }
 
 void compute_distances(instance* inst) {
