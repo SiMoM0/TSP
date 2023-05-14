@@ -150,7 +150,7 @@ void tabu_search(instance* inst) {
 
     check_solution(best_solution, inst->nnodes);
 
-    memcpy(inst->best_sol, best_solution, inst->nnodes * sizeof(int));
+    update_solution(best_obj, best_solution, inst);
 
     printf("FINAL BEST OBJECTIVE = [%f]\n", best_obj);
 
@@ -201,7 +201,7 @@ void vns(instance* inst) {
 
     check_solution(best_solution, inst->nnodes);
 
-    memcpy(inst->best_sol, best_solution, inst->nnodes * sizeof(int));
+    update_solution(best_obj, best_solution, inst);
 
     printf("FINAL BEST OBJECTIVE = [%f]\n", best_obj);
 
