@@ -74,7 +74,24 @@ int candidate_callback(CPXCALLBACKCONTEXTptr context, CPXLONG conxtetid, instanc
 		free(value);
 		free(index);	
 	} else if(ncomp == 1) {
-		//Posting heuristic
+		// Posting heuristic
+		double objheu = alg_2opt(inst, succ);
+
+		// convert solution
+		double* xheu = (double*) calloc(inst->ncols, sizeof(double));  // all zeros, initially
+		for(int i=0; i<inst->nnodes; ++i)
+			xheu[xpos(i,succ[i],inst)] = 1.0;
+
+		int *ind = (int *) malloc(inst->ncols * sizeof(int));
+		for(int i=0; i<inst->ncols; ++i) 
+			ind[i] = i;
+
+		if(CPXcallbackpostheursoln(context, inst->ncols, ind, xheu, objheu, CPXCALLBACKSOLUTION_NOCHECK))
+			print_error("CPXcallbackpostheursoln() error");
+
+		// printf(" ... Post heuristic solution with objective = %f\n", objheu);
+		free(ind);
+		free(xheu);
 	}
 	
     free(comp);
@@ -164,7 +181,7 @@ int relaxation_cut(double cutval, int nnodes, int* cut, void* params) {
     if (CPXcallbackaddusercuts(param->context, 1, ecount, &rhs, &sense, &matbeg, index, value, &purgeable, &local))
         print_error("Error on CPXcallbackaddusercuts()");
 
-	printf("ADDED USER CUTS\n");
+	//printf(" ... Added usercuts\n");
 	free(value);
 	free(index);
 	return 0;
