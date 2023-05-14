@@ -19,6 +19,17 @@
 int add_sec(instance *inst, CPXENVptr env, CPXLPptr lp, int ncomp, int *comp, int ncols, int it);
 
 /**
+ * Patching heuristic
+ * 
+ * @param inst model instance
+ * @param succ successor vector
+ * @param comp vector representing the components
+ * @param ncomp number of components
+ * @return cost
+*/
+double patching_heuristic(instance* inst, int* succ, int* comp, int* ncomp);
+
+/**
  * Perform Bender's loop
  * 
  * @param inst model instance
