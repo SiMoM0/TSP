@@ -206,7 +206,7 @@ void parse_command_line(int argc, char** argv, instance *inst) {
 		if(strcmp(argv[i],"-f") == 0) {strcpy(inst->input_file,argv[++i]); continue;} 				// input file
 		if(strcmp(argv[i], "-solver") == 0) {
 			strcpy(inst->solver, argv[++i]); 
-			if(strcmp(inst->solver, "BENDERS") == 0 || strcmp(inst->solver, "BRANCH_CUT") == 0 || strcmp(inst->solver, "BRANCH_CUT_RLX") == 0) 
+			if(strcmp(inst->solver, "BENDERS") == 0 || strcmp(inst->solver, "BRANCH_CUT") == 0 || strcmp(inst->solver, "BRANCH_CUT_RLX") == 0 || strcmp(inst->solver, "LOCAL_BRANCH") == 0) 
 				inst->cplex = 1; 
 			continue;
 		}				// solver
@@ -469,6 +469,7 @@ void print_help(){
 	printf("BENDERS					Benders' loop\n");
 	printf("BRANCH_CUT_RLX				Callbacks with concorde\n");
 	printf("BRANCH_CUT				Callback method\n");
+	printf("LOCAL_BRANCH				Local Branching method\n");
 }
 
 void debug_plot(instance* inst, int* input_solution) {
@@ -497,3 +498,4 @@ void progressbar(int progress, int total) {
 	//clear current line
 	printf("\033[2K");
 }
+

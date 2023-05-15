@@ -7,6 +7,7 @@
 #include "metaheuristics.h"
 #include "benders.h"
 #include "callbacks.h"
+#include "localBranching.h"
 
 #include <cplex.h>
 

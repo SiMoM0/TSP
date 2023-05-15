@@ -21,6 +21,8 @@ int solve_problem(CPXENVptr env, CPXLPptr lp, instance *inst) {
         status = branch_and_cut(inst, env, lp, CPX_CALLBACKCONTEXT_CANDIDATE | CPX_CALLBACKCONTEXT_RELAXATION);
     } else if(strncmp(inst->solver, "BRANCH_CUT", 10) == 0) {
         status = branch_and_cut(inst, env, lp, CPX_CALLBACKCONTEXT_CANDIDATE); 
+    } else if(strncmp(inst->solver, "LOCAL_BRANCH", 12) == 0) {
+        status = local_branching(inst, env, lp);
     } else {
         print_error("Invalid solver selected");
     }
