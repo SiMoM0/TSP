@@ -467,7 +467,8 @@ void print_help(){
 	printf("TABU_SEARCH				Tabu Search algorithm\n");
 	printf("VNS					Variable Neighbor Search algorithm\n");
 	printf("BENDERS					Benders' loop\n");
-
+	printf("BRANCH_CUT_RLX				Callbacks with concorde\n");
+	printf("BRANCH_CUT				Callback method\n");
 }
 
 void debug_plot(instance* inst, int* input_solution) {
