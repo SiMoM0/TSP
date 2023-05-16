@@ -107,10 +107,14 @@ int relaxation_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, instan
         print_error("CPXcallbackgetcandidatepoint error");
 	
 	// get some random information at the node
-	int mythread = -1; CPXcallbackgetinfoint(context, CPXCALLBACKINFO_THREADID, &mythread); 
-	int mynode = -1; CPXcallbackgetinfoint(context, CPXCALLBACKINFO_NODECOUNT, &mynode); 
-	double incumbent = CPX_INFBOUND; CPXcallbackgetinfodbl(context, CPXCALLBACKINFO_BEST_SOL, &incumbent); 
+	int mythread = -1; CPXcallbackgetinfoint(context, CPXCALLBACKINFO_THREADID, &mythread);
+	int mynode = -1; CPXcallbackgetinfoint(context, CPXCALLBACKINFO_NODECOUNT, &mynode);
+	double incumbent = CPX_INFBOUND; CPXcallbackgetinfodbl(context, CPXCALLBACKINFO_BEST_SOL, &incumbent);
 	
+	// separation frequency
+	if(mynode % 10 != 0)
+		return 0;
+
     if(inst->verbose >= 100)
         printf(" ... relaxation callback at node %5d thread %2d incumbent %10.2lf, candidate value %10.2lf\n", mynode, mythread, incumbent, objval);
 
