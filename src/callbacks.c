@@ -112,7 +112,7 @@ int relaxation_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, instan
 	double incumbent = CPX_INFBOUND; CPXcallbackgetinfodbl(context, CPXCALLBACKINFO_BEST_SOL, &incumbent);
 	
 	// separation frequency
-	if(mynode % 20 != 0)
+	if(mynode % inst->nnodes != 0)
 		return 0;
 
 	int* comps = (int*) calloc(inst->nnodes, sizeof(int));			// nodes pertaining to each component, array of length nnodes
@@ -144,9 +144,10 @@ int relaxation_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, instan
 	cc_params params;
         params.context = context;
         params.inst = inst;
+		params.xstar = xstar;
 
 	if(ncomp == 1) {
-        if(CCcut_violated_cuts(inst->nnodes, ecount, elist, xstar, 2.0 - EPSILON, relaxation_cut, &params))
+        if(CCcut_violated_cuts(inst->nnodes, ecount, elist, xstar, 1.9, relaxation_cut, &params))
             print_error("CCcut_violated_cuts error");
     } else if (ncomp > 1) {
 		int start = 0;
@@ -166,7 +167,7 @@ int relaxation_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, instan
 				//printf("subtour[%d] = %d\n", i, subtour[i]);
 			}
 
-			double cutval = 0.0;
+			double cutval = 0.0; // default value to pass checks
 			relaxation_cut(cutval, compsize, subtour, &params);
 
 			//printf(" ... add usercut with comp #%d of %d\n", c, ncomp);
@@ -197,21 +198,26 @@ int relaxation_cut(double cutval, int cutnodes, int* cut, void* params) {
 	int matbeg = 0;
 	int local = 0;
 
-	int k = 0;
+	int nnz = 0;
     for (int i=0; i<cutnodes; ++i) {
         for (int j=i+1; j<cutnodes; ++j) {
-            index[k] = xpos(cut[i], cut[j], param->inst);
-            value[k] = 1.0;
-			k++;
+            index[nnz] = xpos(cut[i], cut[j], param->inst);
+            value[nnz] = 1.0;
+			nnz++;
         }
     }
 
-	// printf("RHS = %f | k = %d\n", rhs, k);
+	// printf("RHS = %f | nnz = %d\n", rhs, nnz);
 
-    if (CPXcallbackaddusercuts(param->context, 1, ecount, &rhs, &sense, &matbeg, index, value, &purgeable, &local))
+	// check cut violation
+	double violation = cut_violation(param->xstar, nnz, rhs, sense, index, value);
+	// printf(" violation = %f | rhs = %f | nnz = %d | cutval = %f\n", violation, rhs, nnz, cutval);
+
+	if(fabs(violation - (2.0 - cutval) / 2.0) > EPSILON)
+		print_error("Inconsistent violation");
+
+    if(CPXcallbackaddusercuts(param->context, 1, nnz, &rhs, &sense, &matbeg, index, value, &purgeable, &local))
         print_error("Error on CPXcallbackaddusercuts()");
-
-	// TODO check cuts, cloning model into a second model (env2, lp2)
 
 	// printf(" ... Added usercuts\n");
 	free(value);
@@ -250,4 +256,19 @@ int branch_and_cut(instance* inst, CPXENVptr env, CPXLPptr lp, CPXLONG contextid
     free(xstar);
 
     return 0;
+}
+
+double cut_violation(double* xstar, int nnz, double rhs, char sense, int* index, double* value) {
+	double lhs = 0.0;
+
+	for(int i=0; i<nnz; ++i) {
+		lhs += xstar[index[i]] * value[i];
+	}
+
+	if(sense == 'L')
+		return lhs - rhs;
+	else if(sense == 'G')
+		return rhs - lhs;
+	else
+		return fabs(lhs - rhs);
 }
