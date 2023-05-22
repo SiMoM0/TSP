@@ -111,7 +111,7 @@ int relaxation_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, instan
 	int mynode = -1; CPXcallbackgetinfoint(context, CPXCALLBACKINFO_NODECOUNT, &mynode);
 	double incumbent = CPX_INFBOUND; CPXcallbackgetinfodbl(context, CPXCALLBACKINFO_BEST_SOL, &incumbent);
 	
-	// separation frequency
+	// TODO set separation frequency
 	if(mynode % inst->nnodes != 0)
 		return 0;
 

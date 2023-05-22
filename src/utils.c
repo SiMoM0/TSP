@@ -323,6 +323,8 @@ void reverse_path(int* solution, int start, int end) {
 }
 
 int update_solution(double z, int* solution, instance* inst) {
+	check_solution(solution, inst->nnodes);
+	
 	if(inst->zbest < 0.0 || z < inst->zbest) {
 		inst->zbest = z;
 		memcpy(inst->best_sol, solution, inst->nnodes * sizeof(int));

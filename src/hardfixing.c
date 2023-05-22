@@ -8,19 +8,16 @@ int hard_fixing(instance* inst, CPXENVptr env, CPXLPptr lp) {
     // start with a good incumbent
     greedy_2opt(inst, 0);
     
-    //if(CPXcallbacksetfunc(env, lp, CPX_CALLBACKCONTEXT_CANDIDATE, sec_callback, inst))
-        //print_error("CPXcallbacksetfunc() error");
+    if(CPXcallbacksetfunc(env, lp, CPX_CALLBACKCONTEXT_CANDIDATE, sec_callback, inst))
+        print_error("CPXcallbacksetfunc() error");
 
     // build constraints for cplex
     int ncols = CPXgetnumcols(env, lp);
     int* index = (int*) calloc(ncols, sizeof(int));
     double* xcurr = (double*) calloc(ncols, sizeof(double));
 
-    int k = 0;
-    for(int i=0; i<inst->nnodes; ++i) {
-        for(int j=i+1; j<inst->nnodes; ++j) {
-            index[k++] = xpos(i, j, inst);
-        }
+    for(int i=0; i<ncols; ++i) {
+        index[i] = i;
     }
 
     for(int i=0; i<inst->nnodes; ++i) {
@@ -35,6 +32,7 @@ int hard_fixing(instance* inst, CPXENVptr env, CPXLPptr lp) {
     // best solution found
     double bestobj = inst->zbest;
     double* bestx = (double*) calloc(ncols, sizeof(double));
+    memcpy(bestx, xcurr, ncols * sizeof(double));
 
     // fixing params
     double prob = 0.8;
@@ -54,6 +52,7 @@ int hard_fixing(instance* inst, CPXENVptr env, CPXLPptr lp) {
         if(elapsed_time > inst->timelimit)
             break;
 
+        // internal time limit for CPXmipopt
         double tilim = dmin(inst->timelimit - elapsed_time, inst->timelimit / 10.0);
         CPXsetdblparam(env, CPX_PARAM_TILIM, tilim);
 
@@ -64,7 +63,7 @@ int hard_fixing(instance* inst, CPXENVptr env, CPXLPptr lp) {
         for(int i=0; i<ncols; ++i) {
             double randnum = (double) rand() / RAND_MAX;
 
-            if(xcurr[i] > 0.5 && randnum < prob) {
+            if(xcurr[i] > 0.5 && randnum <= prob) {
                 indices[cnt++] = i;
             }
         }
@@ -75,23 +74,23 @@ int hard_fixing(instance* inst, CPXENVptr env, CPXLPptr lp) {
 
         CPXwriteprob(env, lp, "fixmodel.lp", NULL);
 
-        //CPXmipopt(env, lp);
-        benders(inst, env, lp);
+        CPXmipopt(env, lp);
 
         // get new solution
         double objval;
         CPXgetx(env, lp, xcurr, 0, ncols-1);
         CPXgetobjval(env, lp, &objval);
 
+        //printf(" ... Current solution = %f | prob = %f | time = %f\n", objval, prob, elapsed_time);
+
         if(objval < bestobj) {
-            printf(" ... New solution found = %f | time = %f\n", objval, elapsed_time);
+            printf(" ... New solution found = %10.2lf | time = %3.2lf\n", objval, elapsed_time);
 
             bestobj = objval;
             memcpy(bestx, xcurr, ncols * sizeof(double));
-        } else if(objval > bestobj && prob > 0.6) {
+        } else if(objval >= bestobj && prob > 0.6) {
             prob -= 0.01;
-            printf(" ... New probability set to %f\n", prob);
-            printf("OBJVAL = %f | BESTOBJ = %f\n", objval, bestobj);
+            printf(" ... New probability set to %2.2lf | time = %3.2lf\n", prob, elapsed_time);
         }
 
         // unfix variables
@@ -103,7 +102,7 @@ int hard_fixing(instance* inst, CPXENVptr env, CPXLPptr lp) {
         free(indices);
     }
 
-    // save best solution found in instance
+    // save best solution found
     int* succ = (int*) calloc(inst->nnodes, sizeof(int));
     int* comp = (int*) calloc(inst->nnodes, sizeof(int));
     int ncomp;
