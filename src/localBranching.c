@@ -196,7 +196,7 @@ int local_branching(instance* inst, CPXENVptr env, CPXLPptr lp) {
     while(1) {
         time(&end);
         double elapsed_time = difftime(end, start);
-		printf("elapsed time: %f, timelimit: %f\n\n", elapsed_time, inst->timelimit);
+		//printf("elapsed time: %f, timelimit: %f\n\n", elapsed_time, inst->timelimit);
         if(elapsed_time > inst->timelimit)
             break;
 
@@ -224,14 +224,6 @@ int local_branching(instance* inst, CPXENVptr env, CPXLPptr lp) {
 			print_error("CPXaddrows() error");
 
         CPXmipopt(env, lp);
-
-		int* succ = (int*)malloc(inst->nnodes * sizeof(int));
-
-		//components vector
-		int* comp = (int*)malloc(inst->nnodes * sizeof(int));
-		int ncomp = 0;
-		if (CPXgetx(env, lp, xcurr, 0, ncols - 1)) print_error("error on CPXgetx");
-		build_sol(xcurr, inst, succ, comp, &ncomp);
 
         // get new solution
         double objval;
