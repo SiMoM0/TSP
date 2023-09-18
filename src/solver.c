@@ -21,6 +21,8 @@ int solve_problem(CPXENVptr env, CPXLPptr lp, instance *inst) {
         status = branch_and_cut(inst, env, lp, CPX_CALLBACKCONTEXT_CANDIDATE | CPX_CALLBACKCONTEXT_RELAXATION);
     } else if(strncmp(inst->solver, "BRANCH_CUT", 10) == 0) {
         status = branch_and_cut(inst, env, lp, CPX_CALLBACKCONTEXT_CANDIDATE); 
+    } else if(strncmp(inst->solver, "HARD_FIX", 8) == 0) {
+        status = hard_fixing(inst, env, lp);
     } else {
         print_error("Invalid solver selected");
     }
@@ -29,7 +31,7 @@ int solve_problem(CPXENVptr env, CPXLPptr lp, instance *inst) {
         print_error("Execution FAILED");
     else if(status == 2)
         print_error("Time out during execution");
-    //TODO if we put this if/else block, it is useless to return the status since the program will halt
+
     return status;
 }
 
@@ -147,6 +149,8 @@ int TSPopt(instance *inst){
 
     time(&end);
     double elapsed = difftime(end, start);
+
+    printf("Elapsed time : %f\n", elapsed);
     
     //Free the problem and close cplex environment
     CPXfreeprob(env, &lp);

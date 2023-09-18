@@ -7,6 +7,7 @@
 #include "metaheuristics.h"
 #include "benders.h"
 #include "callbacks.h"
+#include "hardfixing.h"
 
 #include <cplex.h>
 

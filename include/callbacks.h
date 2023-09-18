@@ -9,7 +9,8 @@
 // Data structure for Concorde relaxation callback function
 typedef struct {
     CPXCALLBACKCONTEXTptr context;
-    instance *inst;
+    instance* inst;
+    double* xstar;
 } cc_params;
 
 
@@ -63,3 +64,15 @@ int relaxation_cut(double cutval, int cutcount, int* cut, void* params);
  * @return status
 */
 int branch_and_cut(instance* inst, CPXENVptr env, CPXLPptr lp, CPXLONG contextid);
+
+/**
+ * Check cut
+ * @param xstar current solution in cplex format
+ * @param nnz number of non zero variables
+ * @param rhs right hand side
+ * @param sense constraint sense
+ * @param index array containing indices of variables involved
+ * @param value array with variables values
+ * @return violation value (double)
+*/
+double cut_violation(double* xstar, int nnz, double rhs, char sense, int* index, double* value);

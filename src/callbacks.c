@@ -107,15 +107,16 @@ int relaxation_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, instan
         print_error("CPXcallbackgetcandidatepoint error");
 	
 	// get some random information at the node
-	int mythread = -1; CPXcallbackgetinfoint(context, CPXCALLBACKINFO_THREADID, &mythread); 
-	int mynode = -1; CPXcallbackgetinfoint(context, CPXCALLBACKINFO_NODECOUNT, &mynode); 
-	double incumbent = CPX_INFBOUND; CPXcallbackgetinfodbl(context, CPXCALLBACKINFO_BEST_SOL, &incumbent); 
+	int mythread = -1; CPXcallbackgetinfoint(context, CPXCALLBACKINFO_THREADID, &mythread);
+	int mynode = -1; CPXcallbackgetinfoint(context, CPXCALLBACKINFO_NODECOUNT, &mynode);
+	double incumbent = CPX_INFBOUND; CPXcallbackgetinfodbl(context, CPXCALLBACKINFO_BEST_SOL, &incumbent);
 	
-    if(inst->verbose >= 100)
-        printf(" ... relaxation callback at node %5d thread %2d incumbent %10.2lf, candidate value %10.2lf\n", mynode, mythread, incumbent, objval);
+	// TODO set separation frequency
+	if(mynode % inst->nnodes != 0)
+		return 0;
 
-	int* comps = (int*) calloc(inst->nnodes, sizeof(int));			// edges pertaining to each component
-	int* compscount = (int*) calloc(inst->nnodes, sizeof(int));		// number of nodes in each component
+	int* comps = (int*) calloc(inst->nnodes, sizeof(int));			// nodes pertaining to each component, array of length nnodes
+	int* compscount = (int*) calloc(inst->nnodes, sizeof(int));		// number of nodes in each component, array of length ncomp
     int ncomp;														// number of connected components
 
 	// edge list in concorde format
@@ -123,11 +124,11 @@ int relaxation_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, instan
 	int ecount = 0;
 
 	// fill edge list
-	int index = 0;
+	int idx = 0;
 	for(int i=0; i<inst->nnodes; ++i) {
 		for(int j=i+1; j<inst->nnodes; ++j) {
-			elist[index++] = i;
-			elist[index++] = j;
+			elist[idx++] = i;
+			elist[idx++] = j;
 			ecount++;
 		}
 	}
@@ -135,17 +136,47 @@ int relaxation_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, instan
 	if(CCcut_connect_components(inst->nnodes, ecount, elist, xstar, &ncomp, &compscount, &comps))
 		print_error("CCcut_connect_components error");
 
-	//printf("NCOMP = %d\n", ncomp);
+	// printf("NCOMP = %d\n", ncomp);
 
-	if(ncomp == 1) {
-        cc_params params;
+	if(inst->verbose >= 100)
+        	printf(" ... relaxation callback at node %5d thread %2d incumbent %10.2lf, candidate value %10.2lf, number of components %5d\n", mynode, mythread, incumbent, objval, ncomp);
+
+	cc_params params;
         params.context = context;
         params.inst = inst;
+		params.xstar = xstar;
 
-        if(CCcut_violated_cuts(inst->nnodes, ecount, elist, xstar, 2.0 - EPSILON, relaxation_cut, &params))
+	if(ncomp == 1) {
+        if(CCcut_violated_cuts(inst->nnodes, ecount, elist, xstar, 1.9, relaxation_cut, &params))
             print_error("CCcut_violated_cuts error");
-    }
-	//TODO add usercuts anyway ?
+    } else if (ncomp > 1) {
+		int start = 0;
+
+		// add sec for each components
+		for(int c=0; c<ncomp; ++c) {
+			// number of nodes in the current component
+			int compsize = compscount[c];
+
+			//printf("Component #%d of %d | size = %d\n", c, ncomp, compsize);
+
+			// current subtour in the graph
+			int* subtour = (int*) calloc(compsize, sizeof(int));
+			
+			for(int i=0; i<compsize; ++i) {
+				subtour[i] = comps[i+start];
+				//printf("subtour[%d] = %d\n", i, subtour[i]);
+			}
+
+			double cutval = 0.0; // default value to pass checks
+			relaxation_cut(cutval, compsize, subtour, &params);
+
+			//printf(" ... add usercut with comp #%d of %d\n", c, ncomp);
+
+			start += compsize;
+
+			free(subtour);
+		}
+	}
 
 	free(elist);
 	free(compscount);
@@ -154,34 +185,41 @@ int relaxation_callback(CPXCALLBACKCONTEXTptr context, CPXLONG contextid, instan
 	return 0;
 }
 
-int relaxation_cut(double cutval, int nnodes, int* cut, void* params) {
+int relaxation_cut(double cutval, int cutnodes, int* cut, void* params) {
 	cc_params* param = (cc_params*) params;
 
-	int ecount = nnodes * (nnodes - 1) / 2;
+	int ecount = cutnodes * (cutnodes - 1) / 2;
 	int* index = (int*) calloc(ecount, sizeof(int));
     double* value = (double*) calloc(ecount, sizeof(double));
 
 	char sense = 'L'; // <= constraint
-	double rhs = nnodes - 1;
+	double rhs = cutnodes - 1;
 	int purgeable = CPX_USECUT_FILTER;
 	int matbeg = 0;
 	int local = 0;
 
-	int k = 0;
-    for (int i=0; i<nnodes; ++i) {
-        for (int j=0; j<nnodes; ++j) {
-            if(cut[i] >= cut[j]) continue;
-
-            index[k] = xpos(cut[i], cut[j], param->inst);
-            value[k] = 1.0;
-			k++;
+	int nnz = 0;
+    for (int i=0; i<cutnodes; ++i) {
+        for (int j=i+1; j<cutnodes; ++j) {
+            index[nnz] = xpos(cut[i], cut[j], param->inst);
+            value[nnz] = 1.0;
+			nnz++;
         }
     }
 
-    if (CPXcallbackaddusercuts(param->context, 1, ecount, &rhs, &sense, &matbeg, index, value, &purgeable, &local))
+	// printf("RHS = %f | nnz = %d\n", rhs, nnz);
+
+	// check cut violation
+	double violation = cut_violation(param->xstar, nnz, rhs, sense, index, value);
+	// printf(" violation = %f | rhs = %f | nnz = %d | cutval = %f\n", violation, rhs, nnz, cutval);
+
+	if(fabs(violation - (2.0 - cutval) / 2.0) > EPSILON)
+		print_error("Inconsistent violation");
+
+    if(CPXcallbackaddusercuts(param->context, 1, nnz, &rhs, &sense, &matbeg, index, value, &purgeable, &local))
         print_error("Error on CPXcallbackaddusercuts()");
 
-	//printf(" ... Added usercuts\n");
+	// printf(" ... Added usercuts\n");
 	free(value);
 	free(index);
 	return 0;
@@ -218,4 +256,19 @@ int branch_and_cut(instance* inst, CPXENVptr env, CPXLPptr lp, CPXLONG contextid
     free(xstar);
 
     return 0;
+}
+
+double cut_violation(double* xstar, int nnz, double rhs, char sense, int* index, double* value) {
+	double lhs = 0.0;
+
+	for(int i=0; i<nnz; ++i) {
+		lhs += xstar[index[i]] * value[i];
+	}
+
+	if(sense == 'L')
+		return lhs - rhs;
+	else if(sense == 'G')
+		return rhs - lhs;
+	else
+		return fabs(lhs - rhs);
 }

@@ -206,7 +206,7 @@ void parse_command_line(int argc, char** argv, instance *inst) {
 		if(strcmp(argv[i],"-f") == 0) {strcpy(inst->input_file,argv[++i]); continue;} 				// input file
 		if(strcmp(argv[i], "-solver") == 0) {
 			strcpy(inst->solver, argv[++i]); 
-			if(strcmp(inst->solver, "BENDERS") == 0 || strcmp(inst->solver, "BRANCH_CUT") == 0 || strcmp(inst->solver, "BRANCH_CUT_RLX") == 0) 
+			if(strcmp(inst->solver, "BENDERS") == 0 || strcmp(inst->solver, "BRANCH_CUT") == 0 || strcmp(inst->solver, "BRANCH_CUT_RLX") == 0 || strcmp(inst->solver, "HARD_FIX") == 0) 
 				inst->cplex = 1; 
 			continue;
 		}				// solver
@@ -323,6 +323,8 @@ void reverse_path(int* solution, int start, int end) {
 }
 
 int update_solution(double z, int* solution, instance* inst) {
+	check_solution(solution, inst->nnodes);
+	
 	if(inst->zbest < 0.0 || z < inst->zbest) {
 		inst->zbest = z;
 		memcpy(inst->best_sol, solution, inst->nnodes * sizeof(int));
