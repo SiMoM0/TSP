@@ -208,3 +208,89 @@ void vns(instance* inst) {
     free(best_solution);
     free(curr_solution);
 }
+
+void simulated_annealing(instance* inst) {
+    if(inst->zbest == -1)
+        print_error("Initial solution is empty");
+
+    //track execution time
+    time_t start, end;
+    time(&start);
+
+    //best objective and solution
+    double best_obj = inst->zbest;
+    int* best_solution = calloc(inst->nnodes, sizeof(int));
+
+    //current objective and solution
+    double curr_obj = inst->zbest;
+    int* curr_solution = calloc(inst->nnodes, sizeof(int));
+    memcpy(curr_solution, inst->best_sol, inst->nnodes * sizeof(int));
+
+    // simulated annealing variables
+    double alpha = 0.99;
+    double T = (double) inst->nnodes * 10;   
+
+    while(1) {
+        time(&end);
+        if(difftime(end, start) > inst->timelimit)
+            break;
+
+        progressbar((int) difftime(end, start), inst->timelimit);
+
+        //Consider random crossing edges A-D and C-B
+        int nodeA = rand() % inst->nnodes;
+        int nodeC = rand() % (inst->nnodes - 1);
+        int nodeB = curr_solution[nodeC];
+        int nodeD = curr_solution[nodeA];
+
+        while(nodeA == nodeC || nodeA == nodeB || nodeC == nodeD) {
+            nodeA = rand() % inst->nnodes;
+            nodeC = rand() % (inst->nnodes - 1);
+            nodeB = curr_solution[nodeC];
+            nodeD = curr_solution[nodeA];
+        }
+
+        //current edges weight of A-D and C-B
+        double curr_weight = get_cost(nodeA, nodeD, inst) + get_cost(nodeC, nodeB, inst);
+        //weight considering new edges C-A and B-D
+        double new_weight = get_cost(nodeC, nodeA, inst) + get_cost(nodeB, nodeD, inst);
+
+        // delta between the two solutions normalized
+        double delta = new_weight - curr_weight;
+        double delta_z = delta / (curr_obj / inst->nnodes);
+
+        // threshold
+        // TODO stop when threshold is almost zero ?
+        double threshold = exp(- delta_z / T);
+
+        // probability
+        double probability = (double) rand() / RAND_MAX;
+
+        printf("Curr obj = %6.2f | Delta = %4.2f | Norm Delta = %4.2f | Threshold = %4.4f | Prob = %2.4f\n", curr_obj, delta, delta_z, threshold, probability);
+
+        // in case accept the new solution
+        if(probability < threshold) {
+            reverse_path(curr_solution, nodeB, nodeA);
+
+            //set new edges C-A B-D
+            curr_solution[nodeB] = nodeD;
+            curr_solution[nodeC] = nodeA;
+
+            check_solution(curr_solution, inst->nnodes);
+
+            curr_obj += delta;
+
+            printf("New solution = %f\n", curr_obj);
+        }
+
+        // update T
+        T *= alpha;
+    }
+
+    check_solution(curr_solution, inst->nnodes);
+
+    update_solution(curr_obj, curr_solution, inst);
+
+    free(curr_solution);
+    free(best_solution);
+}

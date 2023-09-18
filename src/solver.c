@@ -62,6 +62,9 @@ void solve_heuristic(instance* inst) {
     } else if(strcmp(inst->solver, "VNS") == 0) {
         greedy_iterative(inst);
         vns(inst);
+    } else if(strcmp(inst->solver, "SIM_ANNEALING") == 0) {
+        greedy_iterative(inst);
+        simulated_annealing(inst);
     } else {
         print_error("Invalid solver selected");
     }

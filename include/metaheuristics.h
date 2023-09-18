@@ -17,3 +17,10 @@ void tabu_search(instance* inst);
  * @param inst model isntance
 */
 void vns(instance* inst);
+
+/**
+ * Simulated Annealing algorithm
+ * 
+ * @param isnt model instance
+*/
+void simulated_annealing(instance* inst);
