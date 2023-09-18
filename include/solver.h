@@ -8,6 +8,7 @@
 #include "benders.h"
 #include "callbacks.h"
 #include "hardfixing.h"
+#include "localBranching.h"
 
 #include <cplex.h>
 

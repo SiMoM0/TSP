@@ -23,6 +23,8 @@ int solve_problem(CPXENVptr env, CPXLPptr lp, instance *inst) {
         status = branch_and_cut(inst, env, lp, CPX_CALLBACKCONTEXT_CANDIDATE); 
     } else if(strncmp(inst->solver, "HARD_FIX", 8) == 0) {
         status = hard_fixing(inst, env, lp);
+    } else if(strncmp(inst->solver, "LOCAL_BRANCH", 12) == 0) {
+        status = local_branching(inst, env, lp);
     } else {
         print_error("Invalid solver selected");
     }

@@ -20,7 +20,7 @@ set(CONCORDELIB /opt/concorde)
 #SET (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -ldl")
 
 # Add an executable
-add_executable(main src/main.c src/utils.c src/heuristics.c src/metaheuristics.c src/plot.c src/solver.c src/benders.c src/callbacks.c src/hardfixing.c)
+add_executable(main src/main.c src/utils.c src/heuristics.c src/metaheuristics.c src/plot.c src/solver.c src/benders.c src/callbacks.c src/hardfixing.c src/localBranching.c)
 #add_executable(${PROJECT_NAME} ${tsp_SRC})
 
 # CPLEX
