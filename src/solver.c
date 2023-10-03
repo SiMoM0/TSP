@@ -10,6 +10,20 @@ void solve(instance* inst){
 
     if(inst->verbose >= 1)
         printf("Solution value = %f\n", inst->zbest);
+
+    // performance profile output
+    if(inst->verbose == -1) {
+        char file[100];
+        sprintf(file, "stats.csv");
+
+        FILE* fp = fopen(file, "a");
+        if(fp == NULL)
+            print_error("Error during .csv file creation");
+
+        fprintf(fp, "$STAT;%s;%s;%f;%3.10f;%f\n", inst->solver, inst->name, inst->zbest, inst->exec_time, inst->timelimit);
+
+        fclose(fp);
+    }
 }
 
 int solve_problem(CPXENVptr env, CPXLPptr lp, instance *inst) {

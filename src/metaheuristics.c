@@ -217,10 +217,6 @@ void simulated_annealing(instance* inst) {
     time_t start, end;
     time(&start);
 
-    //best objective and solution
-    double best_obj = inst->zbest;
-    int* best_solution = calloc(inst->nnodes, sizeof(int));
-
     //current objective and solution
     double curr_obj = inst->zbest;
     int* curr_solution = calloc(inst->nnodes, sizeof(int));
@@ -228,7 +224,8 @@ void simulated_annealing(instance* inst) {
 
     // simulated annealing variables
     double alpha = 0.99;
-    double T = (double) inst->nnodes * 10;   
+    double T = (double) inst->nnodes * curr_obj; // seems the best
+    //double T = (double) curr_obj * 10;
 
     while(1) {
         time(&end);
@@ -292,5 +289,4 @@ void simulated_annealing(instance* inst) {
     update_solution(curr_obj, curr_solution, inst);
 
     free(curr_solution);
-    free(best_solution);
 }

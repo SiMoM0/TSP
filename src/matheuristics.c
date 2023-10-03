@@ -5,9 +5,18 @@ int hard_fixing(instance* inst, CPXENVptr env, CPXLPptr lp) {
     time_t start, end;
     time(&start);
 
+    // original time limit
+    double time_limit = inst->timelimit;
+    // set fraction of time limit for metaheuristic
+    inst->timelimit = time_limit / 10;
+
     // start with a good incumbent
-    // TODO use metaheuristic
+	// use metaheuristic
     greedy_2opt(inst, 0);
+    vns(inst);
+
+    // set remaining time limit
+    inst->timelimit = time_limit - time_limit / 10;
     
     if(CPXcallbacksetfunc(env, lp, CPX_CALLBACKCONTEXT_CANDIDATE, sec_callback, inst))
         print_error("CPXcallbacksetfunc() error");
@@ -127,9 +136,18 @@ int local_branching(instance* inst, CPXENVptr env, CPXLPptr lp) {
     time_t start, end;
     time(&start);
 
+    // original time limit
+    double time_limit = inst->timelimit;
+    // set fraction of time limit for metaheuristic
+    inst->timelimit = time_limit / 10;
+
     // start with a good incumbent
-	// TODO use metaheuristic
+	// use metaheuristic
     greedy_2opt(inst, 0);
+    vns(inst);
+
+    // set remaining time limit
+    inst->timelimit = time_limit - time_limit / 10;
     
     if(CPXcallbacksetfunc(env, lp, CPX_CALLBACKCONTEXT_CANDIDATE, sec_callback, inst))
         print_error("CPXcallbacksetfunc() error");
@@ -157,7 +175,7 @@ int local_branching(instance* inst, CPXENVptr env, CPXLPptr lp) {
     double* bestx = (double*) calloc(ncols, sizeof(double));
     memcpy(bestx, xcurr, ncols * sizeof(double));
 
-	int K = 20;
+	int K = 30;
 	int* indexes = (int*)malloc(ncols * sizeof(int));
 	double* values = (double*)malloc(ncols * sizeof(double));
 	int it = 0;
@@ -179,8 +197,6 @@ int local_branching(instance* inst, CPXENVptr env, CPXLPptr lp) {
         // internal time limit for CPXmipopt
         double tilim = dmin(inst->timelimit - elapsed_time, inst->timelimit / 10.0);
         CPXsetdblparam(env, CPX_PARAM_TILIM, tilim);
-
-		int nrows = CPXgetnumrows(env, lp);
 
 		// Add new constraints according to the radius: SUM_{x_e=1}{x_e}>=n-radius
 		int nnz = 0;
@@ -219,8 +235,10 @@ int local_branching(instance* inst, CPXENVptr env, CPXLPptr lp) {
 			K += 10;
         } 
         
+        int nrows = CPXgetnumrows(env, lp);
+
 		// remove local branching constraint (last row)
-		if(CPXdelrows(env, lp, nrows, nrows))
+		if(CPXdelrows(env, lp, nrows-1, nrows-1))
 			print_error("CPXdelrows() error");
 
 		// CPXwriteprob(env, lp, "freelocalb.lp", NULL);

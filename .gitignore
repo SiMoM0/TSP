@@ -9,3 +9,7 @@ build/
 
 #gnuplot command file
 plot/command.txt
+
+#testbed
+testbed/
+plot/testbed*

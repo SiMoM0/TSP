@@ -5,7 +5,9 @@ double greedy(instance* inst, int start_node) {
     if(start_node < 0 || start_node >= inst->nnodes)
         print_error("Invalid start node");
 
-    //TODO track execution time
+    // track execution time
+    time_t start, end;
+    time(&start);
 
     int* solution = (int* ) calloc(inst->nnodes, sizeof(int));
 
@@ -59,6 +61,11 @@ double greedy(instance* inst, int start_node) {
     //check solution validity
     check_solution(solution, inst->nnodes);
 
+    // track execution time
+    time(&end);
+    double elapsed_time = difftime(end, start);
+    inst->exec_time = elapsed_time;
+
     //update objective value
     z += get_cost(start_node, curr_node, inst);
 
@@ -73,7 +80,10 @@ double greedy(instance* inst, int start_node) {
 }
 
 void greedy_iterative(instance* inst) {
-    //TODO track execution time
+    // track execution time
+    time_t start, end;
+    time(&start);
+
     int best_node = 0;
     double best_cost = __DBL_MAX__;
 
@@ -85,11 +95,18 @@ void greedy_iterative(instance* inst) {
         }
     }
 
+    // track execution time
+    time(&end);
+    double elapsed_time = difftime(end, start);
+    inst->exec_time = elapsed_time;
+
     printf("Greedy heuristic - Best starting node = [%d] - Cost = [%f]\n", best_node, best_cost);
 }
 
 void extra_mileage(instance* inst) {
-    //TODO track execution time
+    // track execution time
+    time_t start, end;
+    time(&start);
 
     //furthest nodes
     int node1 = 0;
@@ -128,6 +145,7 @@ void extra_mileage(instance* inst) {
     double z = 2 * get_cost(node1, node2, inst);
 
     while(tour_len < inst->nnodes) {
+        printf("tour len = %d\n", tour_len);
         //candinate node to enter the tour
         int enter_node = 0;
         double enter_cost = __DBL_MAX__;
@@ -175,6 +193,11 @@ void extra_mileage(instance* inst) {
     //check solution
     check_solution(succ, inst->nnodes);
 
+    // track execution time
+    time(&end);
+    double elapsed_time = difftime(end, start);
+    inst->exec_time = elapsed_time;
+
     update_solution(z, succ, inst);
 
     free(succ);
@@ -187,7 +210,9 @@ double grasp(instance* inst, int start_node, double p) {
     if(start_node < 0 || start_node >= inst->nnodes)
         print_error("Invalid start node");
 
-    //TODO track execution time
+    // track execution time
+    time_t start, end;
+    time(&start);
 
     //set probability
     double p1 = p;
@@ -255,6 +280,11 @@ double grasp(instance* inst, int start_node, double p) {
     //check solution validity
     check_solution(solution, inst->nnodes);
 
+    // track execution time
+    time(&end);
+    double elapsed_time = difftime(end, start);
+    inst->exec_time = elapsed_time;
+
     //update objective value
     z += get_cost(start_node, curr_node, inst);
 
@@ -269,7 +299,10 @@ double grasp(instance* inst, int start_node, double p) {
 }
 
 void grasp_iterative(instance* inst) {
-    //TODO track execution time
+    // track execution time
+    time_t start, end;
+    time(&start);
+
     int best_node = 0;
     double best_cost = __DBL_MAX__;
     double p = 0.8;
@@ -282,6 +315,11 @@ void grasp_iterative(instance* inst) {
             best_cost = cost;
         }
     }
+
+    // track execution time
+    time(&end);
+    double elapsed_time = difftime(end, start);
+    inst->exec_time = elapsed_time;
 
     printf("Grasp heuristic - Best starting node = [%d] with p1 = [%f] - Cost = [%f]\n", best_node, p, best_cost);
 }
@@ -351,12 +389,22 @@ double alg_2opt(instance* inst, int* input_solution) {
 }
 
 void greedy_2opt(instance* inst, int start_node) {
+    // track execution time
+    time_t start, end;
+    time(&start);
+
     greedy(inst, start_node);
 
     int* curr_solution = calloc(inst->nnodes, sizeof(int));
     memcpy(curr_solution, inst->best_sol, inst->nnodes * sizeof(int));
 
     double z = alg_2opt(inst, curr_solution);
+
+    // track execution time
+    time(&end);
+    double elapsed_time = difftime(end, start);
+    inst->exec_time = elapsed_time;
+
     update_solution(z, curr_solution, inst);
     printf("New z after 2-opt = %f\n", z);
 
@@ -364,12 +412,22 @@ void greedy_2opt(instance* inst, int start_node) {
 }
 
 void extra_mileage_2opt(instance* inst) {
+    // track execution time
+    time_t start, end;
+    time(&start);
+
     extra_mileage(inst);
 
     int* curr_solution = calloc(inst->nnodes, sizeof(int));
     memcpy(curr_solution, inst->best_sol, inst->nnodes * sizeof(int));
 
     double z = alg_2opt(inst, curr_solution);
+
+    // track execution time
+    time(&end);
+    double elapsed_time = difftime(end, start);
+    inst->exec_time = elapsed_time;
+
     update_solution(z, curr_solution, inst);
     printf("New z after 2-opt = %f\n", z);
 
@@ -377,12 +435,22 @@ void extra_mileage_2opt(instance* inst) {
 }
 
 void grasp_2opt(instance* inst, int start_node, double p) {
+    // track execution time
+    time_t start, end;
+    time(&start);
+
     grasp(inst, start_node, p);
 
     int* curr_solution = calloc(inst->nnodes, sizeof(int));
     memcpy(curr_solution, inst->best_sol, inst->nnodes * sizeof(int));
 
     double z = alg_2opt(inst, curr_solution);
+
+    // track execution time
+    time(&end);
+    double elapsed_time = difftime(end, start);
+    inst->exec_time = elapsed_time;
+    
     update_solution(z, curr_solution, inst);
     printf("New z after 2-opt = %f\n", z);
 

@@ -49,4 +49,5 @@ typedef struct instance {
     //solution
     double zbest;
     int* best_sol;
+    double exec_time;
 } instance;

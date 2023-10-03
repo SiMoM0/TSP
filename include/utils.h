@@ -229,3 +229,19 @@ void debug_plot(instance* inst, int* input_solution);
  * @param total total value
 */
 void progressbar(int progress, int total);
+
+/**
+ * Generate random points
+ * 
+ * @param points output vector of points
+ * @param size number of points
+*/
+void generate_points(point* points, int size);
+
+/**
+ * Create testbed
+ * 
+ * @param num_instances random instances to eb created
+ * @param size number of nodes in each instance
+*/
+void create_testbed(int num_instances, int size);

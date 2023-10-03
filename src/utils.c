@@ -196,6 +196,9 @@ void parse_command_line(int argc, char** argv, instance *inst) {
 	//cplex init = 0 -> not use cplex
 	inst->cplex = 0;
 
+	// flag for testbed creation
+	int testbed = 0;
+
 	// flag for help command
     int help = 0;
 
@@ -216,13 +219,21 @@ void parse_command_line(int argc, char** argv, instance *inst) {
         if(strcmp(argv[i], "-v") == 0) {inst->verbose = atoi(argv[++i]); continue;}					// verbose parameter
 		if(strcmp(argv[i],"-help") == 0) {help = 1; continue;} 										// help
 		if(strcmp(argv[i],"--help") == 0) {help = 1; continue;} 									// help
+		if(strcmp(argv[i], "-testbed") == 0) {testbed = 1; break;}									// testbed creation
 		help = 1;
     }      
 
 	//print help instruction if verbose >= 10
 	if(inst->verbose >= 10) {
 		printf("Enter -help or --help for help\n\n");
-	}        
+	}
+
+	// perform testbed creation
+	if(testbed) {
+		// default parameters
+		create_testbed(10, 5000);
+		exit(0);
+	}
 	
 	//show all the available parameters
 	if(help){
@@ -501,3 +512,72 @@ void progressbar(int progress, int total) {
 	printf("\033[2K");
 }
 
+void generate_points(point* points, int size) {
+	int counter = 0;
+
+	while(counter<size) {
+		point p;
+		p.x = rand() % size;
+		p.y = rand() % size;
+
+		int contained = 0;
+		// check that current point is not contained in points
+		for(int i=0; i<counter; ++i) {
+			if(points[i].x == p.x && points[i].y == p.y) {
+				contained = 1;
+			}
+		}
+
+		// add to points list
+		if(!contained) {
+			points[counter++] = p;
+		}
+	}
+}
+
+void create_testbed(int num_instances, int size) {
+	if(num_instances < 0 || size < 0 || num_instances > 254)
+		print_error("Invalid input parameter for tesbed creation");
+
+	//try to create testbed directory
+    mkdir("../testbed", 0777);
+
+	for(int i=0; i<num_instances; ++i) {
+		char name[100];
+		sprintf(name, "%d", i);
+		// define path for tsp file
+    	char data_path[100];
+    	create_path(data_path, "testbed", name, "tsp");
+
+    	// Write data to tsp file
+    	FILE* fp = fopen(data_path, "w");
+    	if(fp == NULL)
+    	    print_error("Error during .tsp file creation");
+		
+		// write default attributes
+		fprintf(fp, "NAME : testbed%s\n", name);
+		fprintf(fp, "TYPE : TSP\n");
+		fprintf(fp, "DIMENSION : %d\n", size);
+		fprintf(fp, "EDGE_WEIGHT_TYPE : EUC_2D\n");
+
+		// node coordinate section
+		fprintf(fp, "NODE_COORD_SECTION\n");
+
+		point* points = calloc(size, sizeof(point));
+		generate_points(points, size);
+
+		// add points to tsp file
+		for(int j=0; j<size; ++j) {
+			fprintf(fp, "%d %d %d\n", j+1, (int) points[j].x, (int) points[j].y);
+		}
+
+		// add EOF
+		fprintf(fp, "EOF\n");
+
+		fclose(fp);
+
+		free(points);
+	}
+
+	printf("Testbed with %d instances of %d nodes created at ../testbed/\n", num_instances, size);
+}
