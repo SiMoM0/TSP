@@ -6,6 +6,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 #include <time.h>
 #include "tsp.h"
 
@@ -229,6 +230,15 @@ void debug_plot(instance* inst, int* input_solution);
  * @param total total value
 */
 void progressbar(int progress, int total);
+
+/**
+ * Compute elapsed time
+ * 
+ * @param start start timeval
+ * @param end end timeval
+ * @return elapsed time in seconds (double)
+*/
+double compute_time(struct timeval* start, struct timeval* end);
 
 /**
  * Generate random points

@@ -6,8 +6,8 @@ double greedy(instance* inst, int start_node) {
         print_error("Invalid start node");
 
     // track execution time
-    time_t start, end;
-    time(&start);
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
 
     int* solution = (int* ) calloc(inst->nnodes, sizeof(int));
 
@@ -62,8 +62,8 @@ double greedy(instance* inst, int start_node) {
     check_solution(solution, inst->nnodes);
 
     // track execution time
-    time(&end);
-    double elapsed_time = difftime(end, start);
+    gettimeofday(&end, NULL);
+    double elapsed_time = compute_time(&start, &end);
     inst->exec_time = elapsed_time;
 
     //update objective value
@@ -81,8 +81,8 @@ double greedy(instance* inst, int start_node) {
 
 void greedy_iterative(instance* inst) {
     // track execution time
-    time_t start, end;
-    time(&start);
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
 
     int best_node = 0;
     double best_cost = __DBL_MAX__;
@@ -96,8 +96,8 @@ void greedy_iterative(instance* inst) {
     }
 
     // track execution time
-    time(&end);
-    double elapsed_time = difftime(end, start);
+    gettimeofday(&end, NULL);
+    double elapsed_time = compute_time(&start, &end);
     inst->exec_time = elapsed_time;
 
     printf("Greedy heuristic - Best starting node = [%d] - Cost = [%f]\n", best_node, best_cost);
@@ -105,8 +105,8 @@ void greedy_iterative(instance* inst) {
 
 void extra_mileage(instance* inst) {
     // track execution time
-    time_t start, end;
-    time(&start);
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
 
     //furthest nodes
     int node1 = 0;
@@ -194,8 +194,8 @@ void extra_mileage(instance* inst) {
     check_solution(succ, inst->nnodes);
 
     // track execution time
-    time(&end);
-    double elapsed_time = difftime(end, start);
+    gettimeofday(&end, NULL);
+    double elapsed_time = compute_time(&start, &end);
     inst->exec_time = elapsed_time;
 
     update_solution(z, succ, inst);
@@ -211,8 +211,8 @@ double grasp(instance* inst, int start_node, double p) {
         print_error("Invalid start node");
 
     // track execution time
-    time_t start, end;
-    time(&start);
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
 
     //set probability
     double p1 = p;
@@ -281,8 +281,8 @@ double grasp(instance* inst, int start_node, double p) {
     check_solution(solution, inst->nnodes);
 
     // track execution time
-    time(&end);
-    double elapsed_time = difftime(end, start);
+    gettimeofday(&end, NULL);
+    double elapsed_time = compute_time(&start, &end);
     inst->exec_time = elapsed_time;
 
     //update objective value
@@ -300,8 +300,8 @@ double grasp(instance* inst, int start_node, double p) {
 
 void grasp_iterative(instance* inst) {
     // track execution time
-    time_t start, end;
-    time(&start);
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
 
     int best_node = 0;
     double best_cost = __DBL_MAX__;
@@ -317,8 +317,8 @@ void grasp_iterative(instance* inst) {
     }
 
     // track execution time
-    time(&end);
-    double elapsed_time = difftime(end, start);
+    gettimeofday(&end, NULL);
+    double elapsed_time = compute_time(&start, &end);
     inst->exec_time = elapsed_time;
 
     printf("Grasp heuristic - Best starting node = [%d] with p1 = [%f] - Cost = [%f]\n", best_node, p, best_cost);
@@ -390,8 +390,8 @@ double alg_2opt(instance* inst, int* input_solution) {
 
 void greedy_2opt(instance* inst, int start_node) {
     // track execution time
-    time_t start, end;
-    time(&start);
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
 
     greedy(inst, start_node);
 
@@ -401,8 +401,8 @@ void greedy_2opt(instance* inst, int start_node) {
     double z = alg_2opt(inst, curr_solution);
 
     // track execution time
-    time(&end);
-    double elapsed_time = difftime(end, start);
+    gettimeofday(&end, NULL);
+    double elapsed_time = compute_time(&start, &end);
     inst->exec_time = elapsed_time;
 
     update_solution(z, curr_solution, inst);
@@ -413,8 +413,8 @@ void greedy_2opt(instance* inst, int start_node) {
 
 void extra_mileage_2opt(instance* inst) {
     // track execution time
-    time_t start, end;
-    time(&start);
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
 
     extra_mileage(inst);
 
@@ -424,8 +424,8 @@ void extra_mileage_2opt(instance* inst) {
     double z = alg_2opt(inst, curr_solution);
 
     // track execution time
-    time(&end);
-    double elapsed_time = difftime(end, start);
+    gettimeofday(&end, NULL);
+    double elapsed_time = compute_time(&start, &end);
     inst->exec_time = elapsed_time;
 
     update_solution(z, curr_solution, inst);
@@ -436,8 +436,8 @@ void extra_mileage_2opt(instance* inst) {
 
 void grasp_2opt(instance* inst, int start_node, double p) {
     // track execution time
-    time_t start, end;
-    time(&start);
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
 
     grasp(inst, start_node, p);
 
@@ -447,8 +447,8 @@ void grasp_2opt(instance* inst, int start_node, double p) {
     double z = alg_2opt(inst, curr_solution);
 
     // track execution time
-    time(&end);
-    double elapsed_time = difftime(end, start);
+    gettimeofday(&end, NULL);
+    double elapsed_time = compute_time(&start, &end);
     inst->exec_time = elapsed_time;
     
     update_solution(z, curr_solution, inst);
