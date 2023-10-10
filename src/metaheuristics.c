@@ -23,6 +23,13 @@ void tabu_search(instance* inst) {
     int tenure = 10;    //TODO explore different approaches for the tenure value
     int* tabu_vector = calloc(inst->nnodes, sizeof(int));
 
+    // step behavior (from min to max tenure)
+    int min_tenure = 1;
+    int max_tenure = (int) inst->nnodes * 0.1;
+
+    // linear behavior (+1 to max tenure, then -1 to min tenure)
+    int value = 1;
+
     for(int i=0; i<inst->nnodes; ++i)
         tabu_vector[i] = -1000;
     
@@ -30,9 +37,31 @@ void tabu_search(instance* inst) {
         //update tnow
         tnow++;
 
+        // step behavior
+        if(tnow % 2 == 0)
+            tenure = min_tenure;
+        else
+            tenure = max_tenure;
+        
+        // linear behavior
+        /*if(tenure >= max_tenure && value == 1)
+            value = -1;
+        else if(tenure <= min_tenure && value == -1)
+            value = 1;
+        tenure += value;*/
+
+        // sin behavior (1 - max)
+        //tenure = imax(1, (int) max_tenure * sin(tnow));
+
+        // random behavior (1 - max)
+        //tenure = imax(1, rand() % max_tenure);
+
         time(&end);
-        if(difftime(end, start) > inst->timelimit)
+        double elapsed_time = difftime(end, start);
+        if(difftime(end, start) > inst->timelimit) {
+            inst->exec_time = elapsed_time;
             break;
+        }
 
         progressbar((int) difftime(end, start), inst->timelimit);
 
@@ -150,6 +179,10 @@ void tabu_search(instance* inst) {
 
     check_solution(best_solution, inst->nnodes);
 
+    time(&end);
+    double elapsed_time = difftime(end, start);
+    inst->exec_time = elapsed_time;
+
     update_solution(best_obj, best_solution, inst);
 
     printf("FINAL BEST OBJECTIVE = [%f]\n", best_obj);
@@ -180,8 +213,11 @@ void vns(instance* inst) {
     
     while(1) {
         time(&end);
-        if(difftime(end, start) > inst->timelimit)
+        double elapsed_time = difftime(end, start);
+        if(difftime(end, start) > inst->timelimit) {
+            inst->exec_time = elapsed_time;
             break;
+        }
 
         progressbar((int) difftime(end, start), inst->timelimit);
 
@@ -197,9 +233,14 @@ void vns(instance* inst) {
         //Double 3 opt move
         shake(inst, curr_solution);
         shake(inst, curr_solution);
+        shake(inst, curr_solution);
     }
 
     check_solution(best_solution, inst->nnodes);
+
+    time(&end);
+    double elapsed_time = difftime(end, start);
+    inst->exec_time = elapsed_time;
 
     update_solution(best_obj, best_solution, inst);
 
@@ -229,8 +270,11 @@ void simulated_annealing(instance* inst) {
 
     while(1) {
         time(&end);
-        if(difftime(end, start) > inst->timelimit)
+        double elapsed_time = difftime(end, start);
+        if(difftime(end, start) > inst->timelimit) {
+            inst->exec_time = elapsed_time;
             break;
+        }
 
         progressbar((int) difftime(end, start), inst->timelimit);
 
@@ -263,7 +307,7 @@ void simulated_annealing(instance* inst) {
         // probability
         double probability = (double) rand() / RAND_MAX;
 
-        printf("Curr obj = %6.2f | Delta = %4.2f | Norm Delta = %4.2f | Threshold = %4.4f | Prob = %2.4f\n", curr_obj, delta, delta_z, threshold, probability);
+        //printf("Curr obj = %6.2f | Delta = %4.2f | Norm Delta = %4.2f | Threshold = %4.4f | Prob = %2.4f\n", curr_obj, delta, delta_z, threshold, probability);
 
         // in case accept the new solution
         if(probability < threshold) {
@@ -285,6 +329,10 @@ void simulated_annealing(instance* inst) {
     }
 
     check_solution(curr_solution, inst->nnodes);
+
+    time(&end);
+    double elapsed_time = difftime(end, start);
+    inst->exec_time = elapsed_time;
 
     update_solution(curr_obj, curr_solution, inst);
 

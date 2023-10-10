@@ -198,6 +198,8 @@ void parse_command_line(int argc, char** argv, instance *inst) {
 
 	// flag for testbed creation
 	int testbed = 0;
+	int num_instances = 0;
+	int num_nodes = 0;
 
 	// flag for help command
     int help = 0;
@@ -219,7 +221,10 @@ void parse_command_line(int argc, char** argv, instance *inst) {
         if(strcmp(argv[i], "-v") == 0) {inst->verbose = atoi(argv[++i]); continue;}					// verbose parameter
 		if(strcmp(argv[i],"-help") == 0) {help = 1; continue;} 										// help
 		if(strcmp(argv[i],"--help") == 0) {help = 1; continue;} 									// help
-		if(strcmp(argv[i], "-testbed") == 0) {testbed = 1; break;}									// testbed creation
+		if(strcmp(argv[i], "-testbed") == 0) {testbed = 1;											// testbed creation
+											  num_instances = atoi(argv[++i]);
+											  num_nodes = atoi(argv[++i]);
+											  break;}
 		help = 1;
     }      
 
@@ -231,7 +236,7 @@ void parse_command_line(int argc, char** argv, instance *inst) {
 	// perform testbed creation
 	if(testbed) {
 		// default parameters
-		create_testbed(10, 5000);
+		create_testbed(num_instances, num_nodes);
 		exit(0);
 	}
 	

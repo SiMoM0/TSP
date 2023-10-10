@@ -145,7 +145,7 @@ void extra_mileage(instance* inst) {
     double z = 2 * get_cost(node1, node2, inst);
 
     while(tour_len < inst->nnodes) {
-        printf("tour len = %d\n", tour_len);
+        //printf("tour len = %d\n", tour_len);
         //candinate node to enter the tour
         int enter_node = 0;
         double enter_cost = __DBL_MAX__;
