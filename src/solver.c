@@ -62,6 +62,8 @@ void solve_heuristic(instance* inst) {
     } else if(strcmp(inst->solver, "VNS") == 0) {
         greedy_iterative(inst);
         vns(inst);
+    } else if(strcmp(inst->solver, "GENETIC") == 0) { 
+        genetic(inst);
     } else {
         print_error("Invalid solver selected");
     }

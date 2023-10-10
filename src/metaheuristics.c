@@ -1,6 +1,12 @@
 #include "metaheuristics.h"
 #include "heuristics.h"
 
+#define POPULATION 100
+#define OFFSPRING_RATE 0.5 //must be 0.5 or less //tune:0.5,0.4,0.3,0.2,0.1
+#define MUTATION_RATE 0.09 //0.03,0.06,0.09
+#define MAX_GEN 1000 
+#define INFBOUND                2147483647
+
 void tabu_search(instance* inst) {
     if(inst->zbest == -1)
         print_error("Initial solution is empty");
@@ -207,4 +213,332 @@ void vns(instance* inst) {
 
     free(best_solution);
     free(curr_solution);
+}
+
+
+
+// member of the population
+typedef struct {
+	int* solution;      // tsp feasible tour
+	double fitness;     // score of the member -> it is a penalized cost
+	double wheelProb;   // fitness / totalFitness
+	double sumProb;     // cumulative probability
+} chromosome;
+
+void computeFitness(instance* inst, int* solution, int* visited, double* cost) {
+	int index = 0;
+	int next = -1;
+	do {
+		next = solution[index];
+		*cost += get_cost(index, next, inst);
+		index = next;
+
+	} while (index != 0);
+}
+
+int compareChromosomes(const void* lhs, const void* rhs) {
+	const chromosome* lp = lhs;
+	const chromosome* rp = rhs;
+
+	return lp->fitness - rp->fitness;
+}
+
+//uses the wheel roulette method to select a parent
+int selectParent(chromosome* population) {
+
+	// Select a random number between 0 and 1
+	double random = (double)rand() / RAND_MAX;
+
+	// Use the roulette wheel to select a chromosome
+	for (int i = POPULATION - 1; i >= 0; i--) {
+		if (random <= population[i].sumProb) return i;
+	}
+
+	print_error("ROULETTE WHEEL FAILED");
+	exit(1);
+}
+
+void computeExtra(instance* inst, int* visited, int* solution, double* cost) {
+
+	//take generic node, non visited
+	for (int z = 0; z < inst->nnodes; z++) {
+		if (visited[z]) continue;    //skip visited nodes
+
+		double min = INFBOUND;
+		int imin = -1;
+		int jmin = -1;
+
+		//for every visited  node i
+		for (int i = 0; i < inst->nnodes; i++) {
+			if (!visited[i]) continue;   //skip non visited nodes
+
+			double extraM = get_cost(i, z, inst) + get_cost(z, solution[i], inst) - get_cost(i, solution[i], inst);
+
+			if (extraM < min) {
+				min = extraM;
+				imin = i;
+			}
+
+		}
+
+		jmin = solution[imin];
+		solution[imin] = z;
+		solution[z] = jmin;
+		visited[z] = 1;
+
+		*cost += min;
+	}
+}
+
+
+//produce the crossover given two parents
+void produceOffspring(instance* inst, int* p1, int* p2, chromosome* offspring) {
+
+	int breakPoint = rand() % (inst->nnodes - 2) + 1;
+
+	int* visited = (int*)calloc(inst->nnodes, sizeof(int));
+
+	int index = 0;
+	visited[0] = 1;
+	int temp = -1;
+
+	//copy first half of p1 into the child
+	for (int i = 0; i < breakPoint; i++) {
+		temp = p1[index];
+		offspring->solution[index] = temp;
+		visited[temp] = 1;
+		index = temp;
+	}
+
+	//copy second half of p2 into the child
+	for (int i = breakPoint; i < inst->nnodes; i++) {
+		temp = p2[temp];
+		if (!visited[temp]) {
+			offspring->solution[index] = temp;
+			visited[temp] = 1;
+			index = temp;
+		}
+	}
+
+	offspring->solution[index] = 0;
+
+	offspring->fitness = 0;
+
+	//updates fitness of the newborn
+	computeFitness(inst, offspring->solution, visited, &offspring->fitness);
+
+	//repair solution using extra mileage //DA VEDERE MEGLIO
+	computeExtra(inst, visited, offspring->solution, &offspring->fitness);
+
+	free(visited);
+}
+
+
+//initializes the starting population
+int initMember(instance* inst, chromosome* member) {
+
+	member->solution = (int*)calloc(inst->nnodes, sizeof(int));
+
+	int start_node = 0 + ((int) ( ((double) random()) / RAND_MAX * (inst->nnodes - 0)));
+    //grasp_iterative(inst);
+	grasp_2opt(inst, start_node, 0.5);
+
+	//initialize each member with a random sol. from grasp
+	memcpy(member->solution, inst->best_sol, sizeof(int) * inst->nnodes);
+	member->fitness = inst->zbest;
+
+	inst->zbest = -1;
+
+	if (inst->verbose >= 10) {
+		//if (checkSol(inst, member->solution)) return 1;
+        check_solution(member->solution, inst->nnodes);
+		check_cost(inst, member->solution, member->fitness);
+	}
+
+	return 0;
+}
+
+//resets offspring and visited for the new generation
+void reset(instance* inst, chromosome* offspring, int* visited) {
+
+	for (int i = 0; i < POPULATION * OFFSPRING_RATE; i++) {
+		memset(offspring[i].solution, 0, sizeof(int) * inst->nnodes);
+		offspring[i].fitness = 0;
+	}
+
+	memset(visited, 0, sizeof(int) * POPULATION);
+}
+
+
+void genetic(instance* inst) {
+
+    //inst->timeStart = second();
+    time_t start, end;
+    time(&start);
+
+	chromosome* population = (chromosome*)calloc(POPULATION, sizeof(chromosome));
+	double totalFit = 0;
+
+	// initialize population
+	for (int i = 0; i < POPULATION; i++) {
+		if (initMember(inst, &population[i])) printf("Error init_population");
+		totalFit += population[i].fitness;
+	}
+
+	if (inst->verbose >= 1) printf("\n-- POPULATION INITIALIZED SUCCESS --\n");
+	
+
+	int gen = 1;
+
+	//initializes offspring
+	chromosome* offspring = (chromosome*)calloc(POPULATION * OFFSPRING_RATE, sizeof(chromosome));
+	for (int i = 0; i < POPULATION * OFFSPRING_RATE; i++) {
+		offspring[i].solution = (int*)calloc(inst->nnodes, sizeof(int));
+	}
+
+	//initializes the 0-1 array to select the parents
+	int* visited = (int*)calloc(POPULATION, sizeof(int));
+
+	//initializes the mutant
+	chromosome mutant;
+	mutant.solution = (int*)calloc(inst->nnodes, sizeof(int));
+
+
+	do {
+
+        time(&end);
+        if(difftime(end, start) > inst->timelimit)
+            break;
+
+		//compute the wheel roulette probabilities
+		for (int i = 0; i < POPULATION; i++) {
+			population[i].wheelProb = population[i].fitness / totalFit;
+		}
+
+		//sort population based on fitness. First we have the one with better fitness, last the worse
+		qsort(population, POPULATION, sizeof(chromosome), compareChromosomes);
+
+		//check to update the best solution
+		if (inst->zbest == -1 || inst->zbest > population[0].fitness) {
+            update_solution(population[0].fitness, population[0].solution, inst);
+			//updateSol(inst, population[0].fitness, population[0].solution);
+		}
+
+		//compute the cumulative probabilities to use in the wheel roulette
+		population[0].sumProb = 1;
+		for (int i = 1; i < POPULATION; i++) {
+			population[i].sumProb = population[i - 1].sumProb - population[i - 1].wheelProb;
+		}
+
+
+		int count = 0;
+
+		//produce the entire offpring
+		while (count < POPULATION * OFFSPRING_RATE) {
+
+			int p1, p2; //the parents
+
+			do { p1 = selectParent(population); } while (visited[p1]);
+			visited[p1] = 1;
+
+			do { p2 = selectParent(population); } while (p1 == p2 || visited[p2]);
+			visited[p2] = 1;
+
+			//crossover
+			produceOffspring(inst, population[p1].solution, population[p2].solution, &offspring[count]);
+
+			if (inst->verbose >= 10) {
+				check_solution(offspring[count].solution, inst->nnodes);
+				check_cost(inst, offspring[count].solution, offspring[count].fitness);
+			}
+
+			count++;
+		}
+
+		//apply a mutation by using 2opt
+		double m = (double)rand() / RAND_MAX;
+		int mutantIndex = -1;
+
+		if (m < MUTATION_RATE) {
+			mutantIndex = rand() % (POPULATION - 1) + 1;   //assures that the first element remains elite
+
+			memcpy(mutant.solution, population[mutantIndex].solution, sizeof(int) * inst->nnodes);
+			mutant.fitness = population[mutantIndex].fitness;
+
+			//use 2opt to create a mutation
+            mutant.fitness = alg_2opt(inst, mutant.solution);
+    
+			//printf("new fitness: %f", mutant.fitness);
+
+			if (inst->verbose >= 10) {
+				check_solution(mutant.solution, inst->nnodes);
+				check_cost(inst, mutant.solution, mutant.fitness);
+			}
+
+		}
+
+		//create the new generation keeping the elitism
+		int offset = ((POPULATION - POPULATION * OFFSPRING_RATE));
+
+		//copy the offspring at the end of the population, killing all worse chromosomes
+		for (int i = offset; i < POPULATION; i++) {
+			memcpy(population[i].solution, offspring[i - offset].solution, sizeof(int) * inst->nnodes);
+			population[i].fitness = offspring[i - offset].fitness;
+		}
+
+
+		//add mutant to the survivors (if there is). It adds it right before the newly added offspring
+		if (mutantIndex != -1) {
+			memcpy(population[(int)(POPULATION * OFFSPRING_RATE) - 1].solution, mutant.solution, sizeof(int) * inst->nnodes);
+			population[(int)(POPULATION * OFFSPRING_RATE) - 1].fitness = mutant.fitness;
+		}
+
+		for (int i = 0; i < POPULATION; i++) {
+			check_cost(inst, population[i].solution, population[i].fitness);
+		}
+
+		gen++;
+
+		totalFit = 0;
+
+		//if there is a new generation to start, resets the useful arrays and updates the total fitness
+		if (gen <= MAX_GEN) {
+			reset(inst, offspring, visited);
+			for (int i = 0; i < POPULATION; i++) {
+				totalFit += population[i].fitness;
+			}
+		}
+
+
+	} while (gen <= MAX_GEN);
+
+	//checks last generation for the best solution
+	//sort population based on fitness. First we have the one with better fitness, last the worse
+	qsort(population, POPULATION, sizeof(chromosome), compareChromosomes);
+
+	if (inst->zbest == -1 || inst->zbest > population[0].fitness) {
+		//updateSol(inst, population[0].fitness, population[0].solution);
+        update_solution(population[0].fitness, population[0].solution, inst);
+	}
+
+    debug_plot(inst, inst->best_sol);
+	if (inst->verbose >= 1)printf("BEST GENETIC COST FOUND: %f\n", inst->zbest);
+	if (inst->verbose >= 10)printf("generation: %d\n", gen);
+
+
+
+
+	free(visited);
+
+	free(mutant.solution);
+
+    for (int i = 0; i < POPULATION * OFFSPRING_RATE; i++) {
+		free(offspring[i].solution);
+	}
+	free(offspring);
+
+    for (int i = 0; i < POPULATION; i++) {
+		free(population[i].solution);
+	}
+	free(population);
 }

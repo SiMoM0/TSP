@@ -17,3 +17,10 @@ void tabu_search(instance* inst);
  * @param inst model isntance
 */
 void vns(instance* inst);
+
+/**
+ * Genetic algorithm
+ * 
+ * @param inst model instance
+*/
+void genetic(instance* inst);
