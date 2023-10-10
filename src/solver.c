@@ -79,6 +79,8 @@ void solve_heuristic(instance* inst) {
     } else if(strcmp(inst->solver, "SIM_ANNEALING") == 0) {
         greedy_iterative(inst);
         simulated_annealing(inst);
+    } else if(strcmp(inst->solver, "GENETIC") == 0) { 
+        genetic(inst);
     } else {
         print_error("Invalid solver selected");
     }

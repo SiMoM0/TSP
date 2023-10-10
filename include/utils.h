@@ -181,6 +181,15 @@ int update_solution(double z, int* solution, instance* inst);
 void check_solution(int* solution, int length);
 
 /**
+ * Check if the true cost of the solution and the computed cost are equal.
+ * 
+ * @param inst model instance
+ * @param sol current solution
+ * @param c current cost
+*/
+void check_cost(instance* inst, int* sol, double c);
+
+/**
  * Perform a 3-opt move on the input_instance
  * 
  * @param inst model instance

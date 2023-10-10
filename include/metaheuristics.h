@@ -24,3 +24,10 @@ void vns(instance* inst);
  * @param isnt model instance
 */
 void simulated_annealing(instance* inst);
+
+/**
+ * Genetic algorithm
+ * 
+ * @param inst model instance
+*/
+void genetic(instance* inst);
