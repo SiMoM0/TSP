@@ -353,6 +353,18 @@ void check_solution(int* solution, int length) {
 	//debug("TSP solution is valid");
 }
 
+void check_cost(instance* inst, int* sol, double c) {
+	double cost = 0;
+	for (int i = 0; i < inst->nnodes; i++) {
+		cost += get_cost(i, sol[i], inst);
+	}
+
+	//checks that the true cost of the solution and the computed cost are equal
+	if (fabs(cost - c) > 0.000001) {
+		printf("ERROR IN THE SOLUTION COST: %f as %f\n\n", cost, c);
+	}
+}
+
 void shake(instance* inst, int* input_solution) {
     double z = 0;
 
@@ -466,6 +478,7 @@ void print_help(){
 	printf("EXTRA_MIL_2OPT				Extra Mileage and 2-opt algorithm\n");
 	printf("TABU_SEARCH				Tabu Search algorithm\n");
 	printf("VNS					Variable Neighbor Search algorithm\n");
+	printf("GENETIC					Genetic algorithm\n");
 	printf("BENDERS					Benders' loop\n");
 	printf("BRANCH_CUT_RLX				Callbacks with concorde\n");
 	printf("BRANCH_CUT				Callback method\n");
