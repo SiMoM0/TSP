@@ -2,10 +2,10 @@
 #include "heuristics.h"
 
 #define POPULATION 100
-#define OFFSPRING_RATE 0.5 //must be 0.5 or less //tune:0.5,0.4,0.3,0.2,0.1
-#define MUTATION_RATE 0.09 //0.03,0.06,0.09
+#define OFFSPRING_RATE 0.5
+#define MUTATION_RATE 0.09
 #define MAX_GEN 1000 
-#define INFBOUND                2147483647
+#define INFBOUND 2147483647
 
 void tabu_search(instance* inst) {
     if(inst->zbest == -1)

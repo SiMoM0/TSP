@@ -2,7 +2,7 @@
 
 Repository for the Operations Research 2 project regarding the TSP optimization, UniPD 2022/23.
 
-The goal of the project is to solve the Travelling Salesman Problem with different approaches such as constructive heuristics, refinement heuristics, metaheuristics ...
+The goal of the project is to solve the Travelling Salesman Problem with different approaches such as constructive heuristics, refinement heuristics, metaheuristics, exact methods, matheuristics ...
 
 ## Project Structure
 
@@ -28,6 +28,8 @@ The goal of the project is to solve the Travelling Salesman Problem with differe
 ## Requirements
 
 * [Gnuplot](http://www.gnuplot.info/):  a portable command-line driven graphing utility
+* [CPLEX](https://www.ibm.com/it-it/analytics/cplex-optimizer): IBM CPLEX Optimizer
+* [Concorde](https://www.math.uwaterloo.ca/tsp/concorde/index.html): TSP solver
 
 ## Installation
 
@@ -43,11 +45,15 @@ Input data are in `.tsp` from [TSPLIB](http://comopt.ifi.uni-heidelberg.de/softw
 Run the main program with the following command and set the desired parameters:
 
 ```
-./main -file <filepath> -time_limit <tl> -seed <s> -verbose <v>
+./main -file <filepath> -solver <solver> -time_limit <tl> -seed <s> -verbose <v>
 ```
 
-Example: solve the TSP regarding the **att48** instance stored in the `../data/att48.tsp` file, running the command:
+Example: solve the TSP regarding the **att48** instance stored in the `../data/att48.tsp` file with the greedy algorithm, running the command:
 
 ```
-./main -file ../data/att48.tsp -time_limit 60 -seed 10 -verbose 10
+./main -file ../data/att48.tsp -solver GREEDY -time_limit 60 -seed 10 -verbose 10
 ```
+
+To list all the parameters and solvers available run ```./main -help``` or ```./main --help```
+
+To create a random testbed run ```./main -testbed <num_instances> <num_points>``` where *num_instances* is the number of TSP instances to be generated and *num_points* the size of each instance.
