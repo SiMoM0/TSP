@@ -122,10 +122,11 @@ int benders(instance* inst, CPXENVptr env, CPXLPptr lp){
         time(&end);
 		double elapsed = difftime(end, start);
         if(elapsed > inst->timelimit) {
+			inst->exec_time = elapsed;
             free(succ);
             free(comp);
 			free(xstar);
-			return 2;
+			return 0;
         }
 
         // apply to cplex the residual time left to solve the problem
@@ -160,17 +161,21 @@ int benders(instance* inst, CPXENVptr env, CPXLPptr lp){
 			//patching heuristic
 			double cost = patching_heuristic(inst, succ, comp, &ncomp);
 			if(update_solution(cost, succ, inst) && inst->verbose >= 50){
-				printf("Using Patching Heuristic. Best solution updated: %f\n\n\n", cost);
+				printf(" ... Using Patching Heuristic. Best solution updated: %f\n\n\n", cost);
 			}
 
         } else {
 			update_solution(z, succ, inst);
 		}		
 
-		ub = inst->zbest;
-			
+		ub = (inst->zbest > -1) ? inst->zbest: INFINITY;
 		it++;
 	}
+	time(&end);
+	double elapsed_time = difftime(end, start);
+	inst->exec_time = elapsed_time;
+
+	update_solution(z, succ, inst);
 
     free(succ);
 	free(comp);

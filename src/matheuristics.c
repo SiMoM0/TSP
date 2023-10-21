@@ -98,10 +98,13 @@ int hard_fixing(instance* inst, CPXENVptr env, CPXLPptr lp) {
 
             bestobj = objval;
             memcpy(bestx, xcurr, ncols * sizeof(double));
-        } else if(objval >= bestobj && prob > 0.6) {
+        } else if(objval >= bestobj && prob > 0.5) {
             prob -= 0.01;
             printf(" ... New probability set to %2.2lf | time = %3.2lf\n", prob, elapsed_time);
-        }
+        }/* else {
+            prob = 0.5 + (rand() / (RAND_MAX / (0.8 - 0.5)));
+            printf(" ... New probability set to %2.2lf | time = %3.2lf\n", prob, elapsed_time);
+        }*/
 
         // unfix variables
         if(CPXchgbds(env, lp, cnt, indices, lb, zerobounds))
@@ -175,7 +178,7 @@ int local_branching(instance* inst, CPXENVptr env, CPXLPptr lp) {
     double* bestx = (double*) calloc(ncols, sizeof(double));
     memcpy(bestx, xcurr, ncols * sizeof(double));
 
-	int K = 30;
+	int K = 20;
 	int* indexes = (int*)malloc(ncols * sizeof(int));
 	double* values = (double*)malloc(ncols * sizeof(double));
 	int it = 0;

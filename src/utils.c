@@ -570,7 +570,7 @@ void create_testbed(int num_instances, int size) {
 
 	for(int i=0; i<num_instances; ++i) {
 		char name[100];
-		sprintf(name, "%d", i);
+		sprintf(name, "0%d", i);
 		// define path for tsp file
     	char data_path[100];
     	create_path(data_path, "testbed", name, "tsp");

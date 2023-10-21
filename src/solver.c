@@ -45,8 +45,6 @@ int solve_problem(CPXENVptr env, CPXLPptr lp, instance *inst) {
 
     if(status)
         print_error("Execution FAILED");
-    else if(status == 2)
-        print_error("Time out during execution");
 
     return status;
 }
